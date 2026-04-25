@@ -21,7 +21,9 @@ export class ReservationExecutor {
   async generateCombinations(task) {
     const combinations = [];
     const allPlaces = await loadPlaces();
-    const places = task.places && task.places.length > 0 ? task.places : Object.keys(allPlaces);
+    const legacyUsesAllPlaces = !task.placeMode && (!task.places || task.places.length === 0);
+    const usesAllPlaces = task.placeMode === 'all' || legacyUsesAllPlaces;
+    const places = usesAllPlaces ? Object.keys(allPlaces) : (task.places || []);
 
     for (const place of places) {
       for (const date of task.dates) {
@@ -74,7 +76,7 @@ export class ReservationExecutor {
     });
 
     const combinations = await this.generateCombinations(task);
-    const maxConcurrency = this.getTaskConcurrency(task);
+    const maxConcurrency = this.getTaskConcurrency(combinations.length);
     const semaphore = new Semaphore(maxConcurrency);
     const startTime = Date.now();
 
@@ -289,14 +291,18 @@ export class ReservationExecutor {
     return messages[result] || result;
   }
 
-  getTaskConcurrency(task) {
-    const concurrency = Number.parseInt(task.concurrent, 10);
+  getTaskConcurrency(combinationCount) {
+    return Math.max(1, Math.min(combinationCount, 100));
+  }
 
-    if (!Number.isFinite(concurrency)) {
-      return 50;
+  getRepeatMaxRuns(runMode) {
+    const maxRuns = Number.parseInt(runMode?.maxRuns ?? 10, 10);
+
+    if (!Number.isFinite(maxRuns)) {
+      return 10;
     }
 
-    return Math.max(1, Math.min(concurrency, 100));
+    return Math.max(1, Math.min(maxRuns, 10000));
   }
 
   sendLog(level, message) {
@@ -336,6 +342,41 @@ export class ReservationExecutor {
       await this.executeTask(task.id);
     };
 
+    const startRepeat = (runImmediately = false) => {
+      const intervalSeconds = Number.parseInt(runMode.interval, 10) || 60;
+      const intervalMs = intervalSeconds * 1000;
+      const maxRuns = this.getRepeatMaxRuns(runMode);
+      let runCount = 0;
+      let intervalId = null;
+
+      const executeRepeat = async () => {
+        runCount += 1;
+
+        if (runCount >= maxRuns && intervalId) {
+          clearInterval(intervalId);
+          this.repeatIntervals.delete(task.id);
+        }
+
+        this.sendLog('info', `태스크 "${task.name}" 반복 실행 ${runCount}/${maxRuns}`);
+        await executeFunction();
+
+        if (runCount >= maxRuns) {
+          this.sendLog('info', `태스크 "${task.name}" 반복 실행 완료 (${maxRuns}회)`);
+        }
+      };
+
+      this.sendLog('info', `태스크 "${task.name}" 반복 실행 시작 (${intervalSeconds}초 간격, 최대 ${maxRuns}회)`);
+
+      if (runImmediately) {
+        executeRepeat();
+      }
+
+      if (runCount < maxRuns) {
+        intervalId = setInterval(executeRepeat, intervalMs);
+        this.repeatIntervals.set(task.id, intervalId);
+      }
+    };
+
     // startMode에 따라 시작 시점 결정
     if (startMode.type === 'scheduled') {
       // 특정 시간에 시작
@@ -369,12 +410,7 @@ export class ReservationExecutor {
           this.scheduledJobs.delete(task.id);
         } else if (runMode.type === 'repeat') {
           // 간격 반복 시작
-          const intervalMs = (runMode.interval || 60) * 1000;
-          this.sendLog('info', `태스크 "${task.name}" 반복 실행 시작 (${runMode.interval}초 간격)`);
-
-          executeFunction(); // 첫 실행
-          const intervalId = setInterval(executeFunction, intervalMs);
-          this.repeatIntervals.set(task.id, intervalId);
+          startRepeat(true);
           this.scheduledJobs.delete(task.id); // 시작 작업은 제거
         } else if (runMode.type === 'cron') {
           // Cron 스케줄 시작
@@ -391,11 +427,7 @@ export class ReservationExecutor {
     } else if (startMode.type === 'manual') {
       // 수동 실행이지만 runMode가 repeat 또는 cron이면 활성화 시 바로 시작
       if (runMode.type === 'repeat') {
-        const intervalMs = (runMode.interval || 60) * 1000;
-        this.sendLog('info', `태스크 "${task.name}" 반복 실행 시작 (${runMode.interval}초 간격)`);
-
-        const intervalId = setInterval(executeFunction, intervalMs);
-        this.repeatIntervals.set(task.id, intervalId);
+        startRepeat(false);
 
       } else if (runMode.type === 'cron') {
         const cronExpr = runMode.cronExpression || '0 9 * * *';
