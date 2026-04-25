@@ -1,0 +1,82 @@
+{
+  "karuizawa": {
+    "name": "ホテルハーヴェスト 旧軽井沢",
+    "queryString": "PT1RT3hnVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "tateyama": {
+    "name": "トスラブ館山 ルアーナ",
+    "queryString": "PT1RTTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "biore": {
+    "name": "トスラブ箱根 ビオーレ",
+    "queryString": "PT1BTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "washorim": {
+    "name": "トスラブ箱根 和奏林",
+    "queryString": "PT1RTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "nikko": {
+    "name": "日光千姫物語",
+    "queryString": "PT13TTNrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "rafista": {
+    "name": "ラビスタ富士河口湖",
+    "queryString": "PVlETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "risoru": {
+    "name": "リソルの森",
+    "queryString": "PWNETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "ikaho": {
+    "name": "伊香保温泉 ホテル天坊",
+    "queryString": "PT13TndFVE05UVdhbWtIYndCWFk5SVhac3gyYnlSbmJ2TjJYdmRtSjNWbWJmbEhkdzFXWjk0MmJwUjNZaDkxYm5aU1oxSkhkOWtIZHcxV1o%3D"
+  },
+  "kusatsu": {
+    "name": "草津温泉 ホテルヴィレッジ",
+    "queryString": "PT1RTXcwaU53MGlNeUFqTTlVV2JwUjNYdWwyYnFaaU0yY1RQa2xtSmxWbmMwMVRaeVZIZHdGMllmVkdibjkyYm5aU1oxSkhkOWtIZHcxV1o%3D"
+  },
+  "kamakura": {
+    "name": "鎌倉パークホテル",
+    "queryString": "PT1BTXdrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "izu": {
+    "name": "ホテルハーヴェスト伊東",
+    "queryString": "PWdUTXdFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "hamana": {
+    "name": "ホテルハーヴェスト浜名湖",
+    "queryString": "PVV6TjNFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "blueberry": {
+    "name": "ブルーベリーヒル勝浦",
+    "queryString": "PT1RTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "yuhuin": {
+    "name": "ゆふいん山水館",
+    "queryString": "PU1ETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "alivila": {
+    "name": "ホテル日航アリビラ",
+    "queryString": "PWNUTTBJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "ra-atami": {
+    "name": "ラビスタ熱海テラス",
+    "queryString": "PUlUTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "kinugawa": {
+    "name": "ホテルハーヴェスト鬼怒川",
+    "queryString": "PU1UTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "ra-yokozuka": {
+    "name": "ラビスタ横須賀観音崎テラス",
+    "queryString": "PUlETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "atami-ko": {
+    "name": "熱海後楽園ホテル",
+    "queryString": "PUVETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  },
+  "tokyo-bay": {
+    "name": "ホテルオークラ東京ベイ",
+    "queryString": "PUFETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+  }
+}
