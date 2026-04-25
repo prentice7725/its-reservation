@@ -32,6 +32,28 @@ import { useTasks } from '../contexts/TaskContext';
 import { apiClient } from '../api/client';
 import { v4 as uuidv4 } from 'uuid';
 
+function getScheduledParts(value) {
+  if (!value) {
+    return { date: '', time: '' };
+  }
+
+  const [date = '', rawTime = ''] = String(value).split('T');
+  return {
+    date,
+    time: rawTime.slice(0, 8),
+  };
+}
+
+function normalizeScheduledTime(value) {
+  if (!value) return '';
+  return /^\d{2}:\d{2}$/.test(value) ? `${value}:00` : value;
+}
+
+function buildScheduledDateTime(date, time) {
+  if (!date) return null;
+  return `${date}T${normalizeScheduledTime(time) || '00:00:00'}`;
+}
+
 function TaskEditor({ placesVersion = 0 }) {
   const { selectedTask, setSelectedTask, saveTask } = useTasks();
   const [formData, setFormData] = React.useState(null);
@@ -60,7 +82,11 @@ function TaskEditor({ placesVersion = 0 }) {
 
   React.useEffect(() => {
     if (selectedTask) {
-      setFormData({ ...selectedTask });
+      const legacyUsesAllPlaces = !selectedTask.placeMode && (selectedTask.places || []).length === 0;
+      setFormData({
+        ...selectedTask,
+        placeMode: selectedTask.placeMode || (legacyUsesAllPlaces ? 'all' : 'selected'),
+      });
     } else {
       setFormData({
         name: '',
@@ -72,6 +98,7 @@ function TaskEditor({ placesVersion = 0 }) {
         concurrent: 1,
         dates: [],
         places: [],
+        placeMode: 'selected',
         startMode: {
           type: 'manual',
           scheduledTime: null
@@ -79,6 +106,7 @@ function TaskEditor({ placesVersion = 0 }) {
         runMode: {
           type: 'once',
           interval: 60,
+          maxRuns: 10,
           cronExpression: '0 9 * * *'
         },
         burstRetry: {
@@ -113,7 +141,9 @@ function TaskEditor({ placesVersion = 0 }) {
   };
 
   const selectedPlaceIds = formData?.places || [];
-  const usesAllPlaces = selectedPlaceIds.length === 0;
+  const placeMode = formData?.placeMode || 'selected';
+  const usesAllPlaces = placeMode === 'all';
+  const scheduledParts = getScheduledParts(formData?.startMode?.scheduledTime);
   const filteredPlaceOptions = placeOptions.filter((option) => {
     const keyword = placeSearch.trim().toLowerCase();
     if (!keyword) return true;
@@ -144,7 +174,11 @@ function TaskEditor({ placesVersion = 0 }) {
 
   const handleTogglePlace = (placeId) => {
     if (usesAllPlaces) {
-      handleChange('places', placeOptions.map((option) => option.id).filter((id) => id !== placeId));
+      setFormData({
+        ...formData,
+        placeMode: 'selected',
+        places: placeOptions.map((option) => option.id).filter((id) => id !== placeId),
+      });
       return;
     }
 
@@ -167,12 +201,23 @@ function TaskEditor({ placesVersion = 0 }) {
     });
   };
 
+  const handleScheduledPartChange = (field, value) => {
+    const nextDate = field === 'date' ? value : scheduledParts.date;
+    const nextTime = field === 'time' ? value : scheduledParts.time;
+
+    handleChange('startMode', {
+      ...(formData?.startMode || {}),
+      scheduledTime: buildScheduledDateTime(nextDate, nextTime),
+    });
+  };
+
   const handleSave = async () => {
     if (!formData) return;
 
     const taskToSave = {
       ...formData,
       id: formData.id || uuidv4(),
+      places: usesAllPlaces ? [] : selectedPlaceIds,
     };
 
     const success = await saveTask(taskToSave);
@@ -388,11 +433,27 @@ function TaskEditor({ placesVersion = 0 }) {
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1 }}>
                 <Typography variant="caption" color="text.secondary">장소</Typography>
                 <Stack direction="row" spacing={1}>
-                  <Button size="small" onClick={() => handleChange('places', [])}>
+                  <Button
+                    size="small"
+                    onClick={() => setFormData({ ...formData, placeMode: 'all', places: [] })}
+                  >
                     전체 장소
                   </Button>
-                  <Button size="small" onClick={() => handleChange('places', placeOptions.map((option) => option.id))}>
+                  <Button
+                    size="small"
+                    onClick={() => setFormData({
+                      ...formData,
+                      placeMode: 'selected',
+                      places: placeOptions.map((option) => option.id),
+                    })}
+                  >
                     모두 선택
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => setFormData({ ...formData, placeMode: 'selected', places: [] })}
+                  >
+                    선택 해제
                   </Button>
                 </Stack>
               </Box>
@@ -451,6 +512,10 @@ function TaskEditor({ placesVersion = 0 }) {
               <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap', minHeight: 32 }}>
                 {usesAllPlaces ? (
                   <Chip label={`전체 장소 (${placeOptions.length})`} color="primary" size="small" variant="outlined" />
+                ) : selectedPlaceIds.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    선택된 장소가 없습니다
+                  </Typography>
                 ) : (
                   selectedPlaceIds.map((placeId) => (
                     <Chip
@@ -484,24 +549,34 @@ function TaskEditor({ placesVersion = 0 }) {
             </FormControl>
 
             {formData?.startMode?.type === 'scheduled' && (
-              <TextField
-                label="실행 시작 시간"
-                type="datetime-local"
-                value={formData?.startMode?.scheduledTime || ''}
-                onChange={(e) => {
-                  handleChange('startMode', {
-                    ...(formData?.startMode || {}),
-                    scheduledTime: e.target.value
-                  });
-                }}
-                fullWidth
-                sx={{ mt: 1 }}
-                helperText="초 단위까지 입력 가능"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                inputProps={{ step: 1 }}
-              />
+              <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="실행 시작 날짜"
+                    type="date"
+                    value={scheduledParts.date}
+                    onChange={(e) => handleScheduledPartChange('date', e.target.value)}
+                    fullWidth
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="실행 시작 시간"
+                    value={scheduledParts.time}
+                    onChange={(e) => handleScheduledPartChange('time', e.target.value)}
+                    fullWidth
+                    placeholder="09:00:00"
+                    helperText="24시간 형식: HH:mm:ss"
+                    inputProps={{
+                      inputMode: 'numeric',
+                      pattern: '^([01]\\d|2[0-3]):[0-5]\\d(:[0-5]\\d)?$',
+                    }}
+                  />
+                </Grid>
+              </Grid>
             )}
           </Grid>
 
@@ -590,21 +665,40 @@ function TaskEditor({ placesVersion = 0 }) {
             </FormControl>
 
             {formData?.runMode?.type === 'repeat' && (
-              <TextField
-                label="반복 간격 (초)"
-                type="number"
-                value={formData?.runMode?.interval || 60}
-                onChange={(e) => {
-                  handleChange('runMode', {
-                    ...(formData?.runMode || {}),
-                    interval: parseInt(e.target.value) || 1
-                  });
-                }}
-                fullWidth
-                sx={{ mt: 1 }}
-                inputProps={{ min: 1 }}
-                helperText="N초마다 반복 실행"
-              />
+              <Grid container spacing={1} sx={{ mt: 0.5 }}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="반복 간격 (초)"
+                    type="number"
+                    value={formData?.runMode?.interval || 60}
+                    onChange={(e) => {
+                      handleChange('runMode', {
+                        ...(formData?.runMode || {}),
+                        interval: Math.max(1, parseInt(e.target.value, 10) || 1)
+                      });
+                    }}
+                    fullWidth
+                    inputProps={{ min: 1 }}
+                    helperText="N초마다 반복 실행"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    label="최대 실행횟수"
+                    type="number"
+                    value={formData?.runMode?.maxRuns || 10}
+                    onChange={(e) => {
+                      handleChange('runMode', {
+                        ...(formData?.runMode || {}),
+                        maxRuns: Math.max(1, Math.min(parseInt(e.target.value, 10) || 1, 10000))
+                      });
+                    }}
+                    fullWidth
+                    inputProps={{ min: 1, max: 10000 }}
+                    helperText="이 횟수만큼 실행 후 자동 중단"
+                  />
+                </Grid>
+              </Grid>
             )}
 
             {formData?.runMode?.type === 'cron' && (

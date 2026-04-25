@@ -62,16 +62,25 @@ function PlaceManager({ onPlacesChanged }) {
 
   const usageByPlace = React.useMemo(() => {
     const usage = new Map();
+    const addUsage = (placeId, taskName) => {
+      const current = usage.get(placeId) || [];
+      usage.set(placeId, [...current, taskName]);
+    };
 
     tasks.forEach((task) => {
-      (task.places || []).forEach((placeId) => {
-        const current = usage.get(placeId) || [];
-        usage.set(placeId, [...current, task.name || task.id]);
-      });
+      const taskName = task.name || task.id;
+      const legacyUsesAllPlaces = !task.placeMode && (task.places || []).length === 0;
+
+      if (task.placeMode === 'all' || legacyUsesAllPlaces) {
+        placeRows.forEach((place) => addUsage(place.id, taskName));
+        return;
+      }
+
+      (task.places || []).forEach((placeId) => addUsage(placeId, taskName));
     });
 
     return usage;
-  }, [tasks]);
+  }, [tasks, placeRows]);
 
   const loadPlaces = React.useCallback(async () => {
     setLoading(true);

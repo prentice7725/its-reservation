@@ -9,6 +9,21 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { useTasks } from '../contexts/TaskContext';
 import { apiClient } from '../api/client';
 
+function formatDateTime24(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || '-';
+
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
 function ExecutionPanel() {
   const { selectedTask } = useTasks();
   const [scheduleStatus, setScheduleStatus] = React.useState(null);
@@ -137,7 +152,7 @@ function ExecutionPanel() {
 
     // 실행 방식
     if (startMode.type === 'scheduled' && startMode.scheduledTime) {
-      const timeStr = new Date(startMode.scheduledTime).toLocaleString('ko-KR');
+      const timeStr = formatDateTime24(startMode.scheduledTime);
       parts.push(`${timeStr}에 시작`);
     } else if (startMode.type === 'manual') {
       parts.push('수동 실행');
@@ -145,7 +160,7 @@ function ExecutionPanel() {
 
     // 동작 방식
     if (runMode.type === 'repeat') {
-      parts.push(`${runMode.interval}초 반복`);
+      parts.push(`${runMode.interval || 60}초 반복, 최대 ${runMode.maxRuns || 10}회`);
     } else if (runMode.type === 'cron') {
       parts.push(`정기: ${runMode.cronExpression || '0 9 * * *'}`);
     } else if (runMode.type === 'once') {
@@ -253,7 +268,7 @@ function ExecutionPanel() {
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
         <strong>실행 방식:</strong> 수동 (버튼 클릭) / 특정 시간 (예: 사이트 오픈 시간)
         <br />
-        <strong>동작 방식:</strong> 한 번만 / 간격 반복 (N초마다) / 정기 스케줄 (Cron)
+        <strong>동작 방식:</strong> 한 번만 / 간격 반복 (N초마다, 최대 횟수) / 정기 스케줄 (Cron)
         <br />
         <strong>전체 실행:</strong> 활성화된 모든 태스크를 동시에 실행
       </Typography>

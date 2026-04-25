@@ -2,6 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { apiClient } from '../api/client';
 
+function formatLogTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || '-';
+
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+}
+
 function LogViewer() {
   const [logs, setLogs] = useState([]);
   const logEndRef = useRef(null);
@@ -61,7 +73,7 @@ function LogViewer() {
           logs.map((log, index) => (
             <Box key={index} sx={{ mb: 0.5 }}>
               <span style={{ color: '#9e9e9e' }}>
-                [{new Date(log.timestamp).toLocaleTimeString()}]
+                [{formatLogTime(log.timestamp)}]
               </span>{' '}
               <span style={{ color: getLogColor(log.level) }}>{log.message}</span>
             </Box>

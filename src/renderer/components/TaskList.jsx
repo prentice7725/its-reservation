@@ -9,17 +9,21 @@ import {
   Button,
   Box,
   Chip,
+  Stack,
+  Tooltip,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import AlarmIcon from '@mui/icons-material/Alarm';
+import { v4 as uuidv4 } from 'uuid';
 import { useTasks } from '../contexts/TaskContext';
 
 function TaskList() {
-  const { tasks, selectedTask, setSelectedTask, deleteTask } = useTasks();
+  const { tasks, selectedTask, setSelectedTask, saveTask, deleteTask } = useTasks();
 
   const handleNewTask = () => {
     setSelectedTask({
@@ -32,6 +36,7 @@ function TaskList() {
       peoplePerRoom: [3, 3],
       dates: [],
       places: [],
+      placeMode: 'selected',
       startMode: {
         type: 'manual',
         scheduledTime: null,
@@ -39,6 +44,7 @@ function TaskList() {
       runMode: {
         type: 'once',
         interval: 60,
+        maxRuns: 10,
         cronExpression: '0 9 * * *',
       },
     });
@@ -48,6 +54,25 @@ function TaskList() {
     event.stopPropagation();
     if (confirm('정말 이 태스크를 삭제하시겠습니까?')) {
       await deleteTask(id);
+    }
+  };
+
+  const handleCopyTask = async (task, event) => {
+    event.stopPropagation();
+
+    const copiedTask = {
+      ...JSON.parse(JSON.stringify(task)),
+      id: uuidv4(),
+      name: `${task.name || '태스크'} 복사본`,
+      createdAt: undefined,
+      updatedAt: undefined,
+    };
+
+    const success = await saveTask(copiedTask);
+    if (success) {
+      setSelectedTask(copiedTask);
+    } else {
+      alert('태스크 복사 실패');
     }
   };
 
@@ -76,9 +101,18 @@ function TaskList() {
               key={task.id}
               disablePadding
               secondaryAction={
-                <IconButton edge="end" onClick={(e) => handleDelete(task.id, e)}>
-                  <DeleteIcon />
-                </IconButton>
+                <Stack direction="row" spacing={0.5}>
+                  <Tooltip title="태스크 복사">
+                    <IconButton edge="end" onClick={(e) => handleCopyTask(task, e)} aria-label="태스크 복사">
+                      <ContentCopyIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="태스크 삭제">
+                    <IconButton edge="end" onClick={(e) => handleDelete(task.id, e)} aria-label="태스크 삭제">
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
               }
             >
               <ListItemButton
@@ -128,7 +162,7 @@ function TaskList() {
                       {task.runMode?.type === 'repeat' && (
                         <Chip
                           icon={<RepeatIcon />}
-                          label={`${task.runMode.interval}초 반복`}
+                          label={`${task.runMode.interval || 60}초 반복 / 최대 ${task.runMode.maxRuns || 10}회`}
                           size="small"
                           color="primary"
                           variant="outlined"
