@@ -1,5 +1,5 @@
 {
-  "5": {
+  "05": {
     "name": "ホテルハーヴェスト那須",
     "region": "関東",
     "queryString": "PT13TTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -7,7 +7,7 @@
       "all"
     ]
   },
-  "6": {
+  "06": {
     "name": "ホテルハーヴェスト斑尾",
     "region": "中部",
     "queryString": "PT1BTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -15,7 +15,7 @@
       "all"
     ]
   },
-  "9": {
+  "09": {
     "name": "ホテルハーヴェストスキージャム勝山",
     "region": "中部",
     "queryString": "PT13TjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -61,7 +61,7 @@
     "queryString": "PT1RT3hnVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
     "season": "all"
   },
-  "3": {
+  "03": {
     "name": "トスラブ館山 ルアーナ",
     "region": "関東",
     "queryString": "PT1RTTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -69,13 +69,13 @@
       "all"
     ]
   },
-  "1": {
+  "01": {
     "name": "トスラブ箱根 ビオーレ",
     "region": "関東",
     "queryString": "PT1BTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
     "season": "all"
   },
-  "2": {
+  "02": {
     "name": "トスラブ箱根 和奏林",
     "region": "関東",
     "queryString": "PT1RTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -105,7 +105,7 @@
     "queryString": "PT13TndFVE05UVdhbWtIYndCWFk5SVhac3gyYnlSbmJ2TjJYdmRtSjNWbWJmbEhkdzFXWjk0MmJwUjNZaDkxYm5aU1oxSkhkOWtIZHcxV1o%3D",
     "season": "all"
   },
-  "4": {
+  "04": {
     "name": "草津温泉 ホテルヴィレッジ",
     "region": "関東",
     "queryString": "PT1RTXcwaU53MGlNeUFqTTlVV2JwUjNYdWwyYnFaaU0yY1RQa2xtSmxWbmMwMVRaeVZIZHdGMllmVkdibjkyYm5aU1oxSkhkOWtIZHcxV1o%3D",
@@ -121,7 +121,7 @@
       "summer"
     ]
   },
-  "8": {
+  "08": {
     "name": "ホテルハーヴェスト伊東",
     "region": "中部",
     "queryString": "PWdUTXdFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
@@ -133,7 +133,7 @@
     "queryString": "PVV6TjNFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
     "season": "all"
   },
-  "7": {
+  "07": {
     "name": "ブルーベリーヒル勝浦",
     "region": "関東",
     "queryString": "PT1RTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
