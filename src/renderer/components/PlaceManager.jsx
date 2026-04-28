@@ -4,14 +4,19 @@ import {
   Box,
   Button,
   Chip,
+  Checkbox,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
+  FormGroup,
+  FormLabel,
   Grid,
   IconButton,
+  MenuItem,
   Paper,
   Stack,
   Table,
@@ -23,18 +28,64 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
 import AddIcon from '@mui/icons-material/Add';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SaveIcon from '@mui/icons-material/Save';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { apiClient } from '../api/client';
 import { useTasks } from '../contexts/TaskContext';
+
+// season 값을 항상 배열로 정규화 (기존 문자열 값도 호환)
+function normalizeSeason(season) {
+  if (!season) return ['all'];
+  if (Array.isArray(season)) return season.length > 0 ? season : ['all'];
+  return [season];
+}
+
+const SEASON_CHIPS = [
+  { value: 'all', label: '연중', color: 'default', icon: <AllInclusiveIcon fontSize="inherit" /> },
+  { value: 'summer', label: '여름', color: 'warning', icon: <WbSunnyIcon fontSize="inherit" /> },
+  { value: 'winter', label: '겨울', color: 'info', icon: <AcUnitIcon fontSize="inherit" /> },
+];
+
+const REGION_OPTIONS = [
+  '東北',
+  '関東',
+  '中部',
+  '近畿',
+  '九州',
+  '北海道',
+  '四国',
+  '沖縄',
+];
+
+function SeasonChips({ season }) {
+  const seasons = normalizeSeason(season);
+  if (seasons.includes('all')) {
+    return <Chip icon={<AllInclusiveIcon fontSize="inherit" />} label="연중" size="small" color="default" variant="outlined" />;
+  }
+  return (
+    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+      {seasons.includes('summer') && (
+        <Chip icon={<WbSunnyIcon fontSize="inherit" />} label="여름" size="small" color="warning" variant="outlined" />
+      )}
+      {seasons.includes('winter') && (
+        <Chip icon={<AcUnitIcon fontSize="inherit" />} label="겨울" size="small" color="info" variant="outlined" />
+      )}
+    </Box>
+  );
+}
 
 const emptyForm = {
   id: '',
   name: '',
+  region: '',
   queryString: '',
+  season: ['all'],
 };
 
 function normalizePlaces(places) {
@@ -42,7 +93,9 @@ function normalizePlaces(places) {
     .map(([id, data]) => ({
       id,
       name: data?.name || '',
+      region: data?.region || '',
       queryString: data?.queryString || data?.s || '',
+      season: normalizeSeason(data?.season),
     }))
     .sort((a, b) => a.id.localeCompare(b.id));
 }
@@ -110,7 +163,7 @@ function PlaceManager({ onPlacesChanged }) {
 
   const handleEdit = (place) => {
     setEditingId(place.id);
-    setFormData(place);
+    setFormData({ ...emptyForm, ...place });
     setMessage(null);
     setError(null);
   };
@@ -142,11 +195,14 @@ function PlaceManager({ onPlacesChanged }) {
     }
 
     const id = formData.id.trim();
+    const seasonValue = normalizeSeason(formData.season);
     const nextPlaces = {
       ...places,
       [id]: {
         name: formData.name.trim(),
+        region: formData.region.trim(),
         queryString: formData.queryString.trim(),
+        season: seasonValue,
       },
     };
 
@@ -160,7 +216,9 @@ function PlaceManager({ onPlacesChanged }) {
       setFormData({
         id,
         name: savedPlaces[id]?.name || '',
+        region: savedPlaces[id]?.region || '',
         queryString: savedPlaces[id]?.queryString || '',
+        season: normalizeSeason(savedPlaces[id]?.season),
       });
       setMessage('저장되었습니다');
       onPlacesChanged?.();
@@ -263,6 +321,20 @@ function PlaceManager({ onPlacesChanged }) {
                 size="small"
               />
               <TextField
+                label="지역"
+                value={formData.region}
+                onChange={(event) => handleChange('region', event.target.value)}
+                fullWidth
+                size="small"
+                select
+              >
+                {REGION_OPTIONS.map((region) => (
+                  <MenuItem key={region} value={region}>
+                    {region}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <TextField
                 label="Query String"
                 value={formData.queryString}
                 onChange={(event) => handleChange('queryString', event.target.value)}
@@ -270,6 +342,58 @@ function PlaceManager({ onPlacesChanged }) {
                 multiline
                 minRows={4}
               />
+
+              <Box>
+                <FormLabel sx={{ fontSize: '0.75rem' }}>운영 시즌</FormLabel>
+                <FormGroup row sx={{ mt: 0.5 }}>
+                  {(() => {
+                    const seasons = normalizeSeason(formData.season);
+                    const isAll = seasons.includes('all');
+                    const isSummer = seasons.includes('summer');
+                    const isWinter = seasons.includes('winter');
+
+                    const toggleAll = () => handleChange('season', ['all']);
+                    const toggleSummer = () => {
+                      if (isAll) {
+                        handleChange('season', ['summer']);
+                      } else {
+                        const next = isSummer
+                          ? seasons.filter((s) => s !== 'summer')
+                          : [...seasons, 'summer'];
+                        handleChange('season', next.length === 0 ? ['all'] : next);
+                      }
+                    };
+                    const toggleWinter = () => {
+                      if (isAll) {
+                        handleChange('season', ['winter']);
+                      } else {
+                        const next = isWinter
+                          ? seasons.filter((s) => s !== 'winter')
+                          : [...seasons, 'winter'];
+                        handleChange('season', next.length === 0 ? ['all'] : next);
+                      }
+                    };
+
+                    return (
+                      <>
+                        <FormControlLabel
+                          control={<Checkbox checked={isAll} onChange={toggleAll} size="small" />}
+                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}><AllInclusiveIcon fontSize="small" />연중</Box>}
+                        />
+                        <FormControlLabel
+                          control={<Checkbox checked={!isAll && isSummer} onChange={toggleSummer} size="small" color="warning" />}
+                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: (!isAll && isSummer) ? 'warning.main' : 'text.secondary' }}><WbSunnyIcon fontSize="small" />여름</Box>}
+                        />
+                        <FormControlLabel
+                          control={<Checkbox checked={!isAll && isWinter} onChange={toggleWinter} size="small" color="info" />}
+                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: (!isAll && isWinter) ? 'info.main' : 'text.secondary' }}><AcUnitIcon fontSize="small" />겨울</Box>}
+                        />
+                      </>
+                    );
+                  })()}
+                </FormGroup>
+                <Typography variant="caption" color="text.secondary">여름: 7/1~9/30 · 겨울: 12/20~3/31</Typography>
+              </Box>
 
               <Button
                 variant="contained"
@@ -294,6 +418,7 @@ function PlaceManager({ onPlacesChanged }) {
                 <TableHead>
                   <TableRow>
                     <TableCell>장소</TableCell>
+                    <TableCell>시즌</TableCell>
                     <TableCell>사용</TableCell>
                     <TableCell align="right">작업</TableCell>
                   </TableRow>
@@ -301,7 +426,7 @@ function PlaceManager({ onPlacesChanged }) {
                 <TableBody>
                   {placeRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={3}>
+                      <TableCell colSpan={4}>
                         <Typography variant="body2" color="text.secondary" sx={{ py: 3, textAlign: 'center' }}>
                           장소가 없습니다
                         </Typography>
@@ -314,11 +439,14 @@ function PlaceManager({ onPlacesChanged }) {
                         <TableRow key={place.id} hover selected={editingId === place.id}>
                           <TableCell>
                             <Typography variant="body2" fontWeight={700}>
-                              {place.name}
+                              {place.name} {place.region && `(${place.region})`}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {place.id}
                             </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <SeasonChips season={place.season} />
                           </TableCell>
                           <TableCell>
                             <Chip

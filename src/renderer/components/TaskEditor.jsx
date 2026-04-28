@@ -4,6 +4,7 @@ import {
   Typography,
   TextField,
   Button,
+  Chip,
   FormControlLabel,
   Switch,
   MenuItem,
@@ -12,7 +13,6 @@ import {
   FormControl,
   FormLabel,
   Grid,
-  Chip,
   Checkbox,
   Divider,
   IconButton,
@@ -24,10 +24,14 @@ import {
   ListItemText,
   Paper,
   Stack,
+  Tooltip,
 } from '@mui/material';
+import AcUnitIcon from '@mui/icons-material/AcUnit';
 import AddIcon from '@mui/icons-material/Add';
+import AllInclusiveIcon from '@mui/icons-material/AllInclusive';
 import RemoveIcon from '@mui/icons-material/Remove';
 import SearchIcon from '@mui/icons-material/Search';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import { useTasks } from '../contexts/TaskContext';
 import { apiClient } from '../api/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -54,10 +58,62 @@ function buildScheduledDateTime(date, time) {
   return `${date}T${normalizeScheduledTime(time) || '00:00:00'}`;
 }
 
+// 날짜문자열(YYYY-MM-DD)이 어느 시즌에 해당하는지 반환
+// 여름: 7/1 ~ 9/30  /  겨울: 12/20 ~ 3/31
+function getDateSeason(dateStr) {
+  if (!dateStr) return null;
+  const [, monthStr, dayStr] = dateStr.split('-');
+  const month = parseInt(monthStr, 10);
+  const day = parseInt(dayStr, 10);
+
+  // 여름 (7월 1일 ~ 9월 30일)
+  if (month === 7 || month === 8 || (month === 9 && day <= 30)) {
+    return 'summer';
+  }
+  // 겨울 (12월 20일 ~ 3월 31일)
+  if ((month === 12 && day >= 20) || month === 1 || month === 2 || month === 3) {
+    return 'winter';
+  }
+  return 'other'; // 연중 전용이지만 summer/winter에 해당하지 않는 시절
+}
+
+// 날짜 목록에서 활성화된 시즌 Set 반환
+function getActiveSeasons(dates) {
+  const seasons = new Set();
+  (dates || []).forEach((d) => {
+    const s = getDateSeason(d);
+    if (s) seasons.add(s);
+  });
+  return seasons;
+}
+
+// season 값을 항상 배열로 정규화 (기존 문자열도 호환)
+function normalizeSeason(season) {
+  if (!season) return ['all'];
+  if (Array.isArray(season)) return season.length > 0 ? season : ['all'];
+  return [season];
+}
+
+// 장소가 주어진 시즌 Set에서 이용 가능한지 판별
+function isPlaceAvailable(placeSeason, activeSeasons) {
+  if (activeSeasons.size === 0) return true; // 날짜 미선택시 모두 표시
+  const seasons = normalizeSeason(placeSeason);
+  if (seasons.includes('all')) return true;
+  if (seasons.includes('summer') && activeSeasons.has('summer')) return true;
+  if (seasons.includes('winter') && activeSeasons.has('winter')) return true;
+  return false;
+}
+
+const SEASON_LABEL = {
+  all: '연중',
+  summer: '여름한정',
+  winter: '겨울한정',
+};
+
 function TaskEditor({ placesVersion = 0 }) {
   const { selectedTask, setSelectedTask, saveTask } = useTasks();
   const [formData, setFormData] = React.useState(null);
-  const [placeOptions, setPlaceOptions] = React.useState([]);
+  const [rawPlaceOptions, setRawPlaceOptions] = React.useState([]);
   const [dateInput, setDateInput] = React.useState('');
   const [placeSearch, setPlaceSearch] = React.useState('');
 
@@ -66,13 +122,13 @@ function TaskEditor({ placesVersion = 0 }) {
     const loadPlaces = async () => {
       try {
         const loadedPlaces = await apiClient.getPlaces();
-
-        // Autocomplete 옵션 생성 (id와 name 포함)
         const options = Object.entries(loadedPlaces).map(([id, data]) => ({
           id,
           label: data.name || id,
+          region: data.region || '',
+          season: data.season,  // 로우값 그대로, isPlaceAvailable에서 normalizeSeason 실행
         }));
-        setPlaceOptions(options);
+        setRawPlaceOptions(options);
       } catch (error) {
         console.error('장소 로드 실패:', error);
       }
@@ -144,10 +200,22 @@ function TaskEditor({ placesVersion = 0 }) {
   const placeMode = formData?.placeMode || 'selected';
   const usesAllPlaces = placeMode === 'all';
   const scheduledParts = getScheduledParts(formData?.startMode?.scheduledTime);
+
+  // 선택된 날짜들에서 활성 시즌 계산
+  const activeSeasons = React.useMemo(
+    () => getActiveSeasons(formData?.dates),
+    [formData?.dates]
+  );
+
+  // 시즌에 맞는 장소만 필터링
+  const placeOptions = React.useMemo(
+    () => rawPlaceOptions.filter((opt) => isPlaceAvailable(opt.season, activeSeasons)),
+    [rawPlaceOptions, activeSeasons]
+  );
+
   const filteredPlaceOptions = placeOptions.filter((option) => {
     const keyword = placeSearch.trim().toLowerCase();
     if (!keyword) return true;
-
     return (
       option.id.toLowerCase().includes(keyword) ||
       option.label.toLowerCase().includes(keyword)
@@ -155,7 +223,9 @@ function TaskEditor({ placesVersion = 0 }) {
   });
 
   const getSelectedPlaceLabel = (placeId) => {
-    return placeOptions.find((option) => option.id === placeId)?.label || placeId;
+    const option = rawPlaceOptions.find((opt) => opt.id === placeId);
+    if (!option) return placeId;
+    return `${option.label}${option.region ? ` (${option.region})` : ''}`;
   };
 
   const handleAddDate = () => {
@@ -425,13 +495,40 @@ function TaskEditor({ placesVersion = 0 }) {
                   ))
                 )}
               </Box>
+
+              {activeSeasons.size > 0 && (
+                <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, alignItems: 'center' }}>
+                  <Typography variant="caption" color="text.secondary">선택된 날짜 시즌:</Typography>
+                  {activeSeasons.has('summer') && (
+                    <Chip icon={<WbSunnyIcon fontSize="inherit" />} label="여름" size="small" color="warning" variant="outlined" />
+                  )}
+                  {activeSeasons.has('winter') && (
+                    <Chip icon={<AcUnitIcon fontSize="inherit" />} label="겨울" size="small" color="info" variant="outlined" />
+                  )}
+                  {activeSeasons.has('other') && (
+                    <Chip icon={<AllInclusiveIcon fontSize="inherit" />} label="일반" size="small" color="default" variant="outlined" />
+                  )}
+                </Box>
+              )}
             </Box>
           </Grid>
 
           <Grid item xs={12}>
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1 }}>
-                <Typography variant="caption" color="text.secondary">장소</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" color="text.secondary">장소</Typography>
+                  {activeSeasons.size > 0 && placeOptions.length < rawPlaceOptions.length && (
+                    <Tooltip title={`날짜에 맞는 시즌(${Array.from(activeSeasons).map((s) => SEASON_LABEL[s] || s).join(', ')})의 장소만 표시됩니다`}>
+                      <Chip
+                        label={`${placeOptions.length}/${rawPlaceOptions.length} 장소`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Tooltip>
+                  )}
+                </Box>
                 <Stack direction="row" spacing={1}>
                   <Button
                     size="small"
@@ -497,8 +594,25 @@ function TaskEditor({ placesVersion = 0 }) {
                               <Checkbox edge="start" checked={checked} tabIndex={-1} disableRipple />
                             </ListItemIcon>
                             <ListItemText
-                              primary={option.label}
-                              secondary={option.id}
+                              primary={
+                                <span>
+                                  {option.label} {option.region && `(${option.region})`}
+                                </span>
+                              }
+                              secondary={
+                                <span>
+                                  {option.id}
+                                  {option.season && !normalizeSeason(option.season).includes('all') && (
+                                    <span style={{ marginLeft: 6, fontSize: '0.75em', fontWeight: 600 }}>
+                                      {normalizeSeason(option.season).map((s) =>
+                                        s === 'summer' ? <span key={s} style={{ color: '#ed6c02' }}>☀️여름</span>
+                                        : s === 'winter' ? <span key={s} style={{ color: '#0288d1' }}>❄️겨울</span>
+                                        : null
+                                      ).reduce((acc, el, i) => i === 0 ? [el] : [...acc, <span key={`sep-${i}`}>·</span>, el], [])}
+                                    </span>
+                                  )}
+                                </span>
+                              }
                               primaryTypographyProps={{ variant: 'body2' }}
                             />
                           </ListItemButton>

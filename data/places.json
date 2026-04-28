@@ -1,82 +1,189 @@
 {
-  "karuizawa": {
+  "5": {
+    "name": "ホテルハーヴェスト那須",
+    "region": "関東",
+    "queryString": "PT13TTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "6": {
+    "name": "ホテルハーヴェスト斑尾",
+    "region": "中部",
+    "queryString": "PT1BTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "9": {
+    "name": "ホテルハーヴェストスキージャム勝山",
+    "region": "中部",
+    "queryString": "PT13TjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "10": {
+    "name": "ホテル琵琶レイクオーツカ",
+    "region": "近畿",
+    "queryString": "PT1BTzJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "11": {
+    "name": "ホテル日航プリンセス京都",
+    "region": "近畿",
+    "queryString": "PT1RTzJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "12": {
+    "name": "ホテルハーヴェスト南紀田辺",
+    "region": "近畿",
+    "queryString": "PT1BTTNjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "14": {
+    "name": "ホテルハーヴェスト京都鷹峯",
+    "region": "近畿",
+    "queryString": "PT1BTXlnVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
+  },
+  "13": {
     "name": "ホテルハーヴェスト 旧軽井沢",
-    "queryString": "PT1RT3hnVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PT1RT3hnVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "tateyama": {
+  "3": {
     "name": "トスラブ館山 ルアーナ",
-    "queryString": "PT1RTTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT1RTTJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
   },
-  "biore": {
+  "1": {
     "name": "トスラブ箱根 ビオーレ",
-    "queryString": "PT1BTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT1BTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "washorim": {
+  "2": {
     "name": "トスラブ箱根 和奏林",
-    "queryString": "PT1RTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT1RTzFjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "nikko": {
+  "15": {
     "name": "日光千姫物語",
-    "queryString": "PT13TTNrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT13TTNrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "rafista": {
+  "19": {
     "name": "ラビスタ富士河口湖",
-    "queryString": "PVlETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PVlETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "risoru": {
+  "20": {
     "name": "リソルの森",
-    "queryString": "PWNETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PWNETzFFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "ikaho": {
+  "17": {
     "name": "伊香保温泉 ホテル天坊",
-    "queryString": "PT13TndFVE05UVdhbWtIYndCWFk5SVhac3gyYnlSbmJ2TjJYdmRtSjNWbWJmbEhkdzFXWjk0MmJwUjNZaDkxYm5aU1oxSkhkOWtIZHcxV1o%3D"
+    "region": "関東",
+    "queryString": "PT13TndFVE05UVdhbWtIYndCWFk5SVhac3gyYnlSbmJ2TjJYdmRtSjNWbWJmbEhkdzFXWjk0MmJwUjNZaDkxYm5aU1oxSkhkOWtIZHcxV1o%3D",
+    "season": "all"
   },
-  "kusatsu": {
+  "4": {
     "name": "草津温泉 ホテルヴィレッジ",
-    "queryString": "PT1RTXcwaU53MGlNeUFqTTlVV2JwUjNYdWwyYnFaaU0yY1RQa2xtSmxWbmMwMVRaeVZIZHdGMllmVkdibjkyYm5aU1oxSkhkOWtIZHcxV1o%3D"
+    "region": "関東",
+    "queryString": "PT1RTXcwaU53MGlNeUFqTTlVV2JwUjNYdWwyYnFaaU0yY1RQa2xtSmxWbmMwMVRaeVZIZHdGMllmVkdibjkyYm5aU1oxSkhkOWtIZHcxV1o%3D",
+    "season": [
+      "all"
+    ]
   },
-  "kamakura": {
+  "29": {
     "name": "鎌倉パークホテル",
-    "queryString": "PT1BTXdrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT1BTXdrVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "summer"
+    ]
   },
-  "izu": {
+  "8": {
     "name": "ホテルハーヴェスト伊東",
-    "queryString": "PWdUTXdFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PWdUTXdFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "hamana": {
+  "21": {
     "name": "ホテルハーヴェスト浜名湖",
-    "queryString": "PVV6TjNFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PVV6TjNFVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "blueberry": {
+  "7": {
     "name": "ブルーベリーヒル勝浦",
-    "queryString": "PT1RTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PT1RTjJjVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "all"
+    ]
   },
-  "yuhuin": {
+  "26": {
     "name": "ゆふいん山水館",
-    "queryString": "PU1ETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "九州",
+    "queryString": "PU1ETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "alivila": {
+  "30": {
     "name": "ホテル日航アリビラ",
-    "queryString": "PWNUTTBJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "沖縄",
+    "queryString": "PWNUTTBJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": [
+      "summer",
+      "winter"
+    ]
   },
-  "ra-atami": {
+  "27": {
     "name": "ラビスタ熱海テラス",
-    "queryString": "PUlUTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PUlUTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "kinugawa": {
+  "28": {
     "name": "ホテルハーヴェスト鬼怒川",
-    "queryString": "PU1UTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PU1UTzFJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "ra-yokozuka": {
+  "25": {
     "name": "ラビスタ横須賀観音崎テラス",
-    "queryString": "PUlETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PUlETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "atami-ko": {
+  "24": {
     "name": "熱海後楽園ホテル",
-    "queryString": "PUVETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "中部",
+    "queryString": "PUVETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   },
-  "tokyo-bay": {
+  "23": {
     "name": "ホテルオークラ東京ベイ",
-    "queryString": "PUFETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D"
+    "region": "関東",
+    "queryString": "PUFETnpJVFBrbG1KbFZuYzAxVFp5Vkhkd0YyWWZWR2JuOTJiblpTWjFKSGQ5a0hkdzFXWg%3D%3D",
+    "season": "all"
   }
 }
