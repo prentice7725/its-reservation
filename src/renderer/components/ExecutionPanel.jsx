@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import ScheduleIcon from '@mui/icons-material/Schedule';
@@ -182,13 +182,18 @@ function ExecutionPanel() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          실행 제어
-        </Typography>
+      <Stack spacing={1.5}>
+        <Box>
+          <Typography variant="h6" sx={{ lineHeight: 1.2 }}>
+            실행 제어
+          </Typography>
+          <Typography variant="body2" color="text.secondary" noWrap>
+            {selectedTask ? selectedTask.name : '태스크를 선택하세요'}
+          </Typography>
+        </Box>
 
         {scheduleStatus && (
-          <Stack direction="row" spacing={1}>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Chip
               icon={<AccessTimeIcon />}
               label={formatServerOffset()}
@@ -198,26 +203,23 @@ function ExecutionPanel() {
             />
             <Chip
               icon={<ScheduleIcon />}
-              label={`활성 스케줄: ${scheduleStatus.total}개`}
+              label={`스케줄 ${scheduleStatus.total}`}
               size="small"
               color={scheduleStatus.total > 0 ? 'success' : 'default'}
+              variant="outlined"
             />
           </Stack>
         )}
-      </Box>
 
-      {scheduleInfo && (
-        <Box sx={{ mb: 2 }}>
-          <Chip
-            icon={scheduleInfo.icon}
-            label={`자동 실행: ${scheduleInfo.label}`}
-            color={scheduleInfo.color}
-            variant="outlined"
-          />
-        </Box>
-      )}
+        {scheduleInfo && (
+          <Typography variant="caption" color="text.secondary">
+            {scheduleInfo.label}
+          </Typography>
+        )}
 
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Divider />
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
         <Button
           variant="contained"
           startIcon={<PlayArrowIcon />}
@@ -228,12 +230,11 @@ function ExecutionPanel() {
         </Button>
 
         <Button
-          variant="contained"
-          color="secondary"
+          variant="outlined"
           startIcon={<PlayArrowIcon />}
           onClick={handleStartAll}
         >
-          전체 즉시 실행
+          전체 실행
         </Button>
 
         <Button
@@ -242,7 +243,7 @@ function ExecutionPanel() {
           onClick={handleDryRun}
           disabled={!selectedTask || busy}
         >
-          사전 점검
+          Dry-run
         </Button>
 
         <Button
@@ -257,21 +258,14 @@ function ExecutionPanel() {
       </Box>
 
       {dryRunResult && (
-        <Alert severity={dryRunResult.success ? 'success' : 'warning'} sx={{ mt: 2 }}>
+        <Alert severity={dryRunResult.success ? 'success' : 'warning'}>
           {dryRunResult.message}
           {typeof dryRunResult.checkedCount === 'number' && (
             <> ({dryRunResult.checkedCount}/{dryRunResult.totalCount}개 조합 확인)</>
           )}
         </Alert>
       )}
-
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-        <strong>실행 방식:</strong> 수동 (버튼 클릭) / 특정 시간 (예: 사이트 오픈 시간)
-        <br />
-        <strong>동작 방식:</strong> 한 번만 / 간격 반복 (N초마다, 최대 횟수) / 정기 스케줄 (Cron)
-        <br />
-        <strong>전체 실행:</strong> 활성화된 모든 태스크를 동시에 실행
-      </Typography>
+      </Stack>
     </Box>
   );
 }

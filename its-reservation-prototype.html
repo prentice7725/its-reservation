@@ -1,0 +1,1274 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITS 예약 관리 시스템</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --surface: #ffffff;
+      --surface-2: #f0f4f8;
+      --ink: #17202a;
+      --muted: #667085;
+      --border: #d8e0ea;
+      --primary: #1d5f8f;
+      --primary-weak: #e7f2fb;
+      --success: #11845b;
+      --success-weak: #e8f6ef;
+      --warning: #b76b00;
+      --warning-weak: #fff4df;
+      --error: #c83532;
+      --error-weak: #fdeceb;
+      --info: #5b5f97;
+      --shadow: 0 14px 30px rgba(16, 24, 40, 0.08);
+      --radius: 8px;
+      --header-h: 72px;
+      --sidebar-w: 316px;
+      --side-w: 360px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .48; }
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(520px, 1fr) var(--side-w);
+      grid-template-rows: var(--header-h) minmax(0, 1fr);
+      width: 100vw;
+      height: 100vh;
+    }
+
+    header {
+      grid-column: 1 / 4;
+      display: grid;
+      grid-template-columns: var(--sidebar-w) minmax(420px, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      z-index: 5;
+    }
+    .brand-title { font-size: 18px; font-weight: 800; }
+    .brand-sub { margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .time-strip {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .time-strip b {
+      color: var(--ink);
+      font-family: var(--mono);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .sidebar, .side-panel {
+      min-height: 0;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .sidebar {
+      border-right: 1px solid var(--border);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+    .side-panel {
+      border-left: 1px solid var(--border);
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+    main {
+      min-width: 0;
+      min-height: 0;
+      overflow: auto;
+      padding: 22px 28px 36px;
+    }
+
+    .nav-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab {
+      min-height: 34px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .tab.active {
+      color: var(--primary);
+      background: var(--primary-weak);
+      border-color: #bfd9ee;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-head h2, .panel h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+    .section-caption { color: var(--muted); font-size: 12px; margin-top: 4px; }
+    .task-tools {
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      background: #fbfcfe;
+    }
+    .search { position: relative; }
+    .search input { padding-left: 34px; }
+    .search:before {
+      content: "⌕";
+      position: absolute;
+      left: 12px;
+      top: 8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .task-list {
+      overflow: auto;
+      padding: 10px;
+    }
+    .task-card {
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: var(--radius);
+      padding: 13px;
+      margin-bottom: 8px;
+      transition: background .18s, border-color .18s, box-shadow .18s;
+    }
+    .task-card:hover { background: var(--surface-2); }
+    .task-card.active {
+      background: var(--surface);
+      border-color: #b8d0e6;
+      box-shadow: var(--shadow);
+    }
+    .task-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .task-name { font-size: 14px; font-weight: 800; line-height: 1.35; }
+    .task-meta, .task-line {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .task-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .page-head h1 { margin: 0; font-size: 24px; letter-spacing: 0; }
+    .page-head p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .stack { display: grid; gap: 14px; }
+    .card, .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .card { padding: 18px; }
+    .card-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .card h3, .card h4 { margin: 0; }
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .metric {
+      font-size: 28px;
+      font-weight: 850;
+      letter-spacing: 0;
+      line-height: 1.1;
+    }
+    .muted { color: var(--muted); }
+    .small { font-size: 12px; }
+    .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+    .form-card summary {
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .form-card summary::-webkit-details-marker { display: none; }
+    .form-body { display: grid; gap: 16px; padding: 18px; }
+    .field { display: grid; gap: 7px; }
+    .field label { font-size: 13px; font-weight: 750; }
+    .input, select, textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      outline: none;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29, 95, 143, .12);
+    }
+    .segmented {
+      display: inline-grid;
+      grid-auto-flow: column;
+      gap: 2px;
+      padding: 3px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface-2);
+      width: fit-content;
+    }
+    .segmented button {
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      padding: 7px 14px;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .segmented button.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(16, 24, 40, .12);
+    }
+    .check-list {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: #fbfcfe;
+    }
+    .check-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      min-height: 38px;
+      padding: 7px 8px;
+      border-radius: 6px;
+    }
+    .check-row:hover { background: var(--surface-2); }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip, .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .chip strong { color: var(--ink); }
+    .status.ready, .status.success { color: var(--success); background: var(--success-weak); border-color: #b7e0cb; }
+    .status.warning { color: var(--warning); background: var(--warning-weak); border-color: #f0cf96; }
+    .status.invalid, .status.error { color: var(--error); background: var(--error-weak); border-color: #f5bab8; }
+    .status.info { color: var(--primary); background: var(--primary-weak); border-color: #bfd9ee; }
+    .status.idle { color: var(--muted); background: #f7f8fa; }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: currentColor;
+      flex: 0 0 auto;
+    }
+
+    .btn {
+      min-height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .btn:hover { background: var(--surface-2); }
+    .btn.primary { color: #fff; background: var(--primary); border-color: var(--primary); }
+    .btn.primary:hover { background: #174f77; }
+    .btn.danger { color: #fff; background: var(--error); border-color: var(--error); }
+    .btn.ghost { background: transparent; }
+    .btn.small { min-height: 28px; padding: 4px 8px; font-size: 12px; }
+
+    .alert {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid;
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .alert.warning { color: #7d4700; background: var(--warning-weak); border-color: #f0cf96; }
+    .alert.error { color: #8f2523; background: var(--error-weak); border-color: #f5bab8; }
+    .alert.success { color: #0d6446; background: var(--success-weak); border-color: #b7e0cb; }
+
+    .summary-box {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      padding: 14px;
+      background: #fbfcfe;
+      border: 1px dashed #b8c7d8;
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .summary-box div { min-width: 0; }
+    .progress {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+    }
+    .progress > div {
+      height: 100%;
+      width: var(--value, 0%);
+      background: var(--primary);
+      transition: width .25s ease;
+    }
+
+    .panel {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .dry-run-list { display: grid; gap: 8px; }
+    .dry-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      padding: 8px 9px;
+      border-radius: 6px;
+      background: #fbfcfe;
+      border: 1px solid var(--border);
+    }
+    .log-wrap {
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      background: #101418;
+      color: #d6dde6;
+    }
+    .log-tools {
+      display: grid;
+      grid-template-columns: 108px 1fr auto;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid #28313b;
+      background: #151b21;
+    }
+    .log-tools input, .log-tools select {
+      min-height: 30px;
+      border-color: #2f3b48;
+      background: #0f1419;
+      color: #d6dde6;
+    }
+    .logs {
+      overflow: auto;
+      padding: 12px;
+      font: 12px/1.65 var(--mono);
+    }
+    .log-line { display: grid; grid-template-columns: 98px 74px 1fr; gap: 8px; }
+    .log-time { color: #7f8a96; }
+    .log-level.info { color: #7db5ff; }
+    .log-level.success { color: #5ee0a3; }
+    .log-level.warning { color: #ffc66d; }
+    .log-level.error { color: #ff8986; }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      overflow: hidden;
+      border-radius: var(--radius);
+    }
+    .table th, .table td {
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    .table th {
+      color: var(--muted);
+      background: #fbfcfe;
+      font-size: 12px;
+    }
+    .table tr:last-child td { border-bottom: 0; }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns: 290px minmax(0, 1fr);
+        grid-template-rows: var(--header-h) minmax(0, 1fr) 300px;
+      }
+      header { grid-column: 1 / 3; grid-template-columns: 250px 1fr auto; }
+      .side-panel { grid-column: 1 / 3; grid-row: 3; border-left: 0; border-top: 1px solid var(--border); grid-template-columns: 330px 330px minmax(0, 1fr); grid-template-rows: 1fr; }
+      .panel { border-bottom: 0; border-right: 1px solid var(--border); }
+      .grid-3 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      body { overflow: auto; }
+      .app { display: block; height: auto; min-height: 100vh; }
+      header { display: grid; grid-template-columns: 1fr; height: auto; padding: 14px; }
+      .time-strip, .header-actions { flex-wrap: wrap; justify-content: flex-start; }
+      .sidebar, main, .side-panel { min-height: auto; overflow: visible; }
+      main { padding: 18px 14px; }
+      .grid-2, .grid-3, .summary-box { grid-template-columns: 1fr; }
+      .side-panel { display: block; }
+      .log-wrap { min-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+
+    const places = [
+      { id: "ra-atami", name: "ラビスタ伊豆山", region: "関東", season: "all", query: "hotel_id=1001&room_type=..." },
+      { id: "kinugawa", name: "トスラブ鬼怒川", region: "関東", season: "all", query: "hotel_id=1002&room_type=..." },
+      { id: "karuizawa", name: "ホテルハーヴェスト旧軽井沢", region: "中部", season: "all", query: "hotel_id=2001&room_type=..." },
+      { id: "tateyama", name: "館山リゾート", region: "関東", season: "summer", query: "hotel_id=3001&room_type=..." },
+      { id: "blueberry", name: "ブルーベリーヒル勝浦", region: "関東", season: "summer", query: "hotel_id=3002&room_type=..." },
+      { id: "risoru", name: "リソルの森", region: "関東", season: "all", query: "" },
+      { id: "rafista", name: "ラフィスタ伊豆山", region: "関東", season: "all", query: "hotel_id=4001&room_type=..." },
+      { id: "ra-yokozuka", name: "横須賀ベイサイド", region: "関東", season: "all", query: "hotel_id=4002&room_type=..." },
+      { id: "atami-ko", name: "熱海港クラブ", region: "関東", season: "all", query: "hotel_id=4003&room_type=..." }
+    ];
+
+    const initialTasks = [
+      {
+        id: "8cfe6890", name: "1", enabled: true, method: "HTTP", email: "prentice7725@gmail.com",
+        dates: ["2026-06-05"], places: ["ra-atami", "kinugawa"], placeMode: "selected",
+        rooms: 1, people: [3], concurrent: 1, startMode: "scheduled", scheduledTime: "2026-04-27 00:00:00",
+        runMode: "once", burst: true, dryRun: "failed", status: "warning", lastResult: "스케줄 시각이 과거입니다."
+      },
+      {
+        id: "ca7402b5", name: "3", enabled: true, method: "HTTP", email: "prentice7725@gmail.com",
+        dates: ["2026-06-05"], places: ["karuizawa", "tateyama", "risoru"], placeMode: "selected",
+        rooms: 1, people: [3], concurrent: 1, startMode: "scheduled", scheduledTime: "2026-04-27 00:00:00",
+        runMode: "once", burst: true, dryRun: "passed", status: "ready", lastResult: "사전 점검 통과"
+      },
+      {
+        id: "03643467", name: "blueberry", enabled: true, method: "HTTP", email: "prentice7725@gmail.com",
+        dates: ["2026-06-05"], places: ["blueberry"], placeMode: "selected",
+        rooms: 1, people: [3], concurrent: 1, startMode: "scheduled", scheduledTime: "2026-04-27 00:00:05",
+        runMode: "repeat", interval: 3, maxRuns: 5, burst: true, dryRun: "passed", status: "ready", lastResult: "반복 실행 준비"
+      },
+      {
+        id: "80e72ff5", name: "2", enabled: true, method: "HTTP", email: "prentice7725@gmail.com",
+        dates: ["2026-06-05"], places: ["rafista", "ra-yokozuka", "atami-ko"], placeMode: "selected",
+        rooms: 1, people: [3], concurrent: 1, startMode: "scheduled", scheduledTime: "2026-04-27 00:00:00",
+        runMode: "once", burst: true, dryRun: "none", status: "warning", lastResult: "Dry-run 미실행"
+      },
+      {
+        id: "pw-01", name: "겨울 스키 예약", enabled: false, method: "Playwright", email: "user@example.com",
+        dates: ["2026-12-24", "2026-12-25"], places: ["karuizawa"], placeMode: "selected",
+        rooms: 2, people: [2, 2], concurrent: 1, startMode: "manual", scheduledTime: "",
+        runMode: "once", burst: false, dryRun: "unsupported", status: "idle", lastResult: "수동 실행"
+      }
+    ];
+
+    const histories = [
+      { id: 1, task: "3", start: "2026-04-27 00:00:00", duration: "4.8초", status: "partial", success: 1, failed: 2, method: "HTTP" },
+      { id: 2, task: "blueberry", start: "2026-04-27 00:00:05", duration: "15.1초", status: "failed", success: 0, failed: 5, method: "HTTP" },
+      { id: 3, task: "주말 가족 여행", start: "2026-04-25 09:59:59", duration: "2.2초", status: "success", success: 1, failed: 0, method: "HTTP" }
+    ];
+
+    const statusLabels = {
+      ready: "준비 완료",
+      warning: "주의 필요",
+      invalid: "설정 오류",
+      idle: "대기",
+      running: "실행 중",
+      success: "성공",
+      failed: "실패"
+    };
+
+    function App() {
+      const [tasks, setTasks] = useState(initialTasks);
+      const [selectedId, setSelectedId] = useState(initialTasks[0].id);
+      const [view, setView] = useState("dashboard");
+      const [query, setQuery] = useState("");
+      const [statusFilter, setStatusFilter] = useState("all");
+      const [methodFilter, setMethodFilter] = useState("all");
+      const [serverTime, setServerTime] = useState(new Date());
+      const [running, setRunning] = useState(false);
+      const [progress, setProgress] = useState(0);
+      const [logFilter, setLogFilter] = useState("all");
+      const [logQuery, setLogQuery] = useState("");
+      const [logs, setLogs] = useState([
+        { time: "09:59:58.120", level: "info", msg: "앱 상태 초기화 완료" },
+        { time: "09:59:58.232", level: "success", msg: "WebSocket 실시간 로그 연결됨" },
+        { time: "09:59:58.274", level: "warning", msg: "일부 스케줄 시간이 현재보다 과거입니다." }
+      ]);
+
+      const activeTask = useMemo(() => tasks.find(task => task.id === selectedId) || tasks[0], [tasks, selectedId]);
+      const selectedPlaces = useMemo(() => places.filter(place => activeTask?.places.includes(place.id)), [activeTask]);
+      const combinationCount = (activeTask?.dates.length || 0) * (activeTask?.places.length || 0);
+      const riskCount = tasks.filter(task => task.status === "warning" || task.status === "invalid").length;
+
+      useEffect(() => {
+        const timer = setInterval(() => setServerTime(new Date()), 100);
+        return () => clearInterval(timer);
+      }, []);
+
+      function nowStamp() {
+        const date = new Date();
+        return date.toLocaleTimeString("en-GB", { hour12: false }) + "." + String(date.getMilliseconds()).padStart(3, "0");
+      }
+
+      function addLog(msg, level = "info") {
+        setLogs(prev => [...prev, { time: nowStamp(), level, msg }]);
+      }
+
+      function selectTask(id) {
+        setSelectedId(id);
+        setView("editor");
+      }
+
+      function createTask() {
+        const task = {
+          id: "new-" + Date.now(),
+          name: "새 예약 태스크",
+          enabled: false,
+          method: "HTTP",
+          email: "",
+          dates: [],
+          places: [],
+          placeMode: "selected",
+          rooms: 1,
+          people: [2],
+          concurrent: 1,
+          startMode: "manual",
+          scheduledTime: "",
+          runMode: "once",
+          burst: false,
+          dryRun: "none",
+          status: "invalid",
+          lastResult: "필수 입력 필요"
+        };
+        setTasks(prev => [task, ...prev]);
+        setSelectedId(task.id);
+        setView("editor");
+      }
+
+      function duplicateTask(task) {
+        const copy = { ...task, id: "copy-" + Date.now(), name: task.name + " 복제", status: "idle", dryRun: "none", lastResult: "복제됨" };
+        setTasks(prev => [copy, ...prev]);
+        setSelectedId(copy.id);
+        setView("editor");
+        addLog(`태스크 복제: ${task.name}`, "info");
+      }
+
+      function dryRun() {
+        if (!activeTask || activeTask.method === "Playwright") return;
+        addLog(`Dry-run 시작: ${activeTask.name}`, "info");
+        setTimeout(() => addLog("필수 입력 검사 통과", "success"), 300);
+        setTimeout(() => addLog("예약 사이트 접근 및 토큰 확인 완료", "success"), 700);
+        setTimeout(() => {
+          addLog("Dry-run 완료: 사전 점검 통과", "success");
+          setTasks(prev => prev.map(task => task.id === activeTask.id ? { ...task, dryRun: "passed", status: "ready", lastResult: "사전 점검 통과" } : task));
+        }, 1000);
+      }
+
+      function runTask(scope = "single") {
+        if (running) return;
+        const targetName = scope === "all" ? "활성 태스크 전체" : activeTask.name;
+        setRunning(true);
+        setProgress(0);
+        setTasks(prev => prev.map(task => task.id === activeTask.id ? { ...task, status: "running" } : task));
+        addLog(`실행 시작: ${targetName}`, "info");
+        addLog(`대상 조합: ${scope === "all" ? activeCombinationCount(tasks) : combinationCount}개`, "info");
+
+        let step = 0;
+        const timer = setInterval(() => {
+          step += 1;
+          setProgress(step * 20);
+          if (step === 1) addLog("서버 시간 오프셋 반영 완료", "info");
+          if (step === 2) addLog("세션 토큰 및 authenticity token 확보", "success");
+          if (step === 3) addLog("조합 1 실행: 빈 방 없음, 집중 재시도 예정", "warning");
+          if (step === 4) addLog("조합 2 실행: 예약 요청 제출", "info");
+          if (step >= 5) {
+            clearInterval(timer);
+            setRunning(false);
+            setProgress(100);
+            addLog("예약 성공: 확인 메일 발송 대상 검증 완료", "success");
+            setTasks(prev => prev.map(task => task.id === activeTask.id ? { ...task, status: "success", lastResult: "예약 성공 1건" } : task));
+          }
+        }, 850);
+      }
+
+      function stopRun() {
+        setRunning(false);
+        setProgress(0);
+        addLog("사용자가 실행을 중단했습니다.", "error");
+        setTasks(prev => prev.map(task => task.id === activeTask.id ? { ...task, status: "warning", lastResult: "사용자 중단" } : task));
+      }
+
+      const filteredTasks = tasks.filter(task => {
+        const matchesQuery = task.name.toLowerCase().includes(query.toLowerCase()) || task.email.toLowerCase().includes(query.toLowerCase());
+        const matchesStatus = statusFilter === "all" || task.status === statusFilter || (statusFilter === "enabled" && task.enabled) || (statusFilter === "dry" && task.dryRun === "passed");
+        const matchesMethod = methodFilter === "all" || task.method === methodFilter;
+        return matchesQuery && matchesStatus && matchesMethod;
+      });
+
+      const filteredLogs = logs.filter(log => {
+        const levelMatch = logFilter === "all" || log.level === logFilter;
+        const queryMatch = !logQuery || log.msg.toLowerCase().includes(logQuery.toLowerCase());
+        return levelMatch && queryMatch;
+      });
+
+      return (
+        <div className="app">
+          <Header
+            serverTime={serverTime}
+            scheduleCount={tasks.filter(task => task.startMode === "scheduled").length}
+            running={running}
+            onRunAll={() => runTask("all")}
+          />
+          <aside className="sidebar">
+            <NavTabs view={view} setView={setView} />
+            <TaskHeader onNew={createTask} />
+            <TaskFilters
+              query={query}
+              setQuery={setQuery}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              methodFilter={methodFilter}
+              setMethodFilter={setMethodFilter}
+            />
+            <TaskList
+              tasks={filteredTasks}
+              selectedId={selectedId}
+              onSelect={selectTask}
+              onDuplicate={duplicateTask}
+              onRun={runTask}
+            />
+            <div className="panel">
+              <div className="chips">
+                <span className="status info"><span className="dot"></span>스케줄 {tasks.filter(t => t.startMode === "scheduled").length}</span>
+                <span className={riskCount ? "status warning" : "status success"}>{riskCount ? `주의 ${riskCount}` : "경고 없음"}</span>
+              </div>
+            </div>
+          </aside>
+          <main>
+            {view === "dashboard" && <Dashboard tasks={tasks} histories={histories} onGoEditor={() => setView("editor")} />}
+            {view === "editor" && <TaskEditor task={activeTask} selectedPlaces={selectedPlaces} places={places} combinationCount={combinationCount} setTasks={setTasks} />}
+            {view === "history" && <HistoryView histories={histories} />}
+            {view === "places" && <PlaceManager places={places} tasks={tasks} />}
+          </main>
+          <SidePanel
+            task={activeTask}
+            combinationCount={combinationCount}
+            running={running}
+            progress={progress}
+            logs={filteredLogs}
+            logFilter={logFilter}
+            setLogFilter={setLogFilter}
+            logQuery={logQuery}
+            setLogQuery={setLogQuery}
+            onDryRun={dryRun}
+            onRun={() => runTask("single")}
+            onStop={stopRun}
+          />
+        </div>
+      );
+    }
+
+    function activeCombinationCount(tasks) {
+      return tasks.filter(task => task.enabled).reduce((sum, task) => sum + task.dates.length * task.places.length, 0);
+    }
+
+    function Header({ serverTime, scheduleCount, running, onRunAll }) {
+      const time = serverTime.toLocaleTimeString("en-GB", { hour12: false });
+      const ms = String(serverTime.getMilliseconds()).padStart(3, "0");
+      return (
+        <header>
+          <div>
+            <div className="brand-title">ITS 예약 관리 시스템</div>
+            <div className="brand-sub">사전 준비, 실행 제어, 실시간 로그</div>
+          </div>
+          <div className="time-strip">
+            <span>서버 <b>{time}.{ms}</b></span>
+            <span>오프셋 <b>+124ms</b></span>
+            <span>RTT <b>42ms</b></span>
+            <span>마지막 동기화 <b>방금 전</b></span>
+          </div>
+          <div className="header-actions">
+            <span className="status success"><span className="dot"></span>실시간 연결됨</span>
+            <span className="status info">스케줄 {scheduleCount}</span>
+            <span className={running ? "status warning" : "status idle"}>{running ? "실행 중 1" : "실행 중 0"}</span>
+            <button className="btn primary" onClick={onRunAll}>활성 태스크 전체 실행</button>
+          </div>
+        </header>
+      );
+    }
+
+    function NavTabs({ view, setView }) {
+      return (
+        <div className="nav-tabs">
+          {[
+            ["dashboard", "대시보드"],
+            ["editor", "태스크"],
+            ["history", "히스토리"],
+            ["places", "장소"]
+          ].map(([key, label]) => (
+            <button key={key} className={`tab ${view === key ? "active" : ""}`} onClick={() => setView(key)}>{label}</button>
+          ))}
+        </div>
+      );
+    }
+
+    function TaskHeader({ onNew }) {
+      return (
+        <div className="section-head">
+          <div>
+            <h2>태스크</h2>
+            <div className="section-caption">예약 후보와 실행 준비 상태</div>
+          </div>
+          <button className="btn small primary" onClick={onNew}>새 태스크</button>
+        </div>
+      );
+    }
+
+    function TaskFilters({ query, setQuery, statusFilter, setStatusFilter, methodFilter, setMethodFilter }) {
+      return (
+        <div className="task-tools">
+          <div className="search">
+            <input className="input" value={query} onChange={event => setQuery(event.target.value)} placeholder="태스크명 또는 이메일 검색" />
+          </div>
+          <div className="filter-row">
+            <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)}>
+              <option value="all">전체 상태</option>
+              <option value="enabled">활성</option>
+              <option value="ready">준비 완료</option>
+              <option value="warning">주의 필요</option>
+              <option value="running">실행 중</option>
+              <option value="dry">Dry-run 통과</option>
+            </select>
+            <select value={methodFilter} onChange={event => setMethodFilter(event.target.value)}>
+              <option value="all">전체 방식</option>
+              <option value="HTTP">HTTP</option>
+              <option value="Playwright">Playwright</option>
+            </select>
+          </div>
+        </div>
+      );
+    }
+
+    function TaskList({ tasks, selectedId, onSelect, onDuplicate, onRun }) {
+      if (!tasks.length) {
+        return <div className="task-list"><div className="alert warning"><b>!</b><div>조건에 맞는 태스크가 없습니다.</div></div></div>;
+      }
+
+      return (
+        <div className="task-list">
+          {tasks.map(task => {
+            const combinations = task.dates.length * task.places.length;
+            return (
+              <div
+                key={task.id}
+                className={`task-card ${selectedId === task.id ? "active" : ""}`}
+                role="button"
+                tabIndex="0"
+                onClick={() => onSelect(task.id)}
+                onKeyDown={event => {
+                  if (event.key === "Enter" || event.key === " ") onSelect(task.id);
+                }}
+              >
+                <div className="task-top">
+                  <div>
+                    <div className="task-name">{task.enabled ? "● " : "○ "}{task.name}</div>
+                    <div className="task-meta">
+                      <span className="chip">{task.method}</span>
+                      <span>날짜 {task.dates.length}</span>
+                      <span>장소 {task.places.length}</span>
+                      <span>조합 {combinations}</span>
+                    </div>
+                  </div>
+                  <span className={`status ${task.status}`}>{statusLabels[task.status] || task.status}</span>
+                </div>
+                <div className="task-line">
+                  <span>{task.startMode === "scheduled" ? task.scheduledTime : "수동 실행"}</span>
+                  <span>{task.dryRun === "passed" ? "Dry-run 통과" : task.dryRun === "failed" ? "Dry-run 실패" : task.dryRun === "unsupported" ? "Dry-run 미지원" : "Dry-run 미실행"}</span>
+                </div>
+                <div className="task-actions" onClick={event => event.stopPropagation()}>
+                  <button className="btn small" onClick={() => onRun("single")}>실행</button>
+                  <button className="btn small" onClick={() => onDuplicate(task)}>복제</button>
+                  <button className="btn small">삭제</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function Dashboard({ tasks, histories, onGoEditor }) {
+      const active = tasks.filter(task => task.enabled).length;
+      const dryPassed = tasks.filter(task => task.dryRun === "passed").length;
+      const warnings = tasks.filter(task => task.status === "warning" || task.status === "invalid");
+      const nextSchedules = tasks.filter(task => task.startMode === "scheduled").slice(0, 4);
+
+      return (
+        <div className="stack">
+          <div className="page-head">
+            <div>
+              <h1>준비 상태</h1>
+              <p>예약 오픈 전에 확인해야 할 태스크, Dry-run, 스케줄 상태를 한눈에 모았습니다.</p>
+            </div>
+            <button className="btn primary" onClick={onGoEditor}>선택 태스크 편집</button>
+          </div>
+          <div className="grid-3">
+            <Metric title="활성 태스크" value={`${active}개`} text={`전체 ${tasks.length}개 중 실행 대상`} />
+            <Metric title="Dry-run 통과" value={`${dryPassed}/${tasks.length}`} text="HTTP 방식 사전 점검 기준" tone="success" />
+            <Metric title="주의 필요" value={`${warnings.length}개`} text="과거 스케줄 또는 점검 누락" tone={warnings.length ? "warning" : "success"} />
+          </div>
+          {warnings.length > 0 && (
+            <div className="alert warning">
+              <b>!</b>
+              <div><strong>예약 실행 전 확인이 필요합니다.</strong><br />{warnings.map(task => `${task.name}: ${task.lastResult}`).join(" / ")}</div>
+            </div>
+          )}
+          <div className="grid-2">
+            <div className="card">
+              <div className="card-title"><h3>다가오는 스케줄</h3><span className="status info">서버 시간 기준</span></div>
+              <table className="table">
+                <tbody>
+                  {nextSchedules.map(task => (
+                    <tr key={task.id}>
+                      <td><strong>{task.name}</strong><div className="muted small">{task.method} · 조합 {task.dates.length * task.places.length}</div></td>
+                      <td className="mono">{task.scheduledTime}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="card">
+              <div className="card-title"><h3>최근 실행 결과</h3><span className="status idle">최근 3건</span></div>
+              <table className="table">
+                <tbody>
+                  {histories.map(item => (
+                    <tr key={item.id}>
+                      <td><strong>{item.task}</strong><div className="muted small">{item.start}</div></td>
+                      <td><span className={`status ${item.status === "success" ? "success" : item.status === "failed" ? "error" : "warning"}`}>{item.status}</span></td>
+                      <td>성공 {item.success} / 실패 {item.failed}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Metric({ title, value, text, tone = "info" }) {
+      return (
+        <div className="card">
+          <div className="eyebrow">{title}</div>
+          <div className="metric" style={{ color: tone === "success" ? "var(--success)" : tone === "warning" ? "var(--warning)" : "var(--ink)" }}>{value}</div>
+          <div className="muted small">{text}</div>
+        </div>
+      );
+    }
+
+    function TaskEditor({ task, selectedPlaces, places, combinationCount, setTasks }) {
+      if (!task) {
+        return <div className="alert warning"><b>!</b><div>태스크를 선택하거나 새 태스크를 만드세요.</div></div>;
+      }
+      const isOverLimit = combinationCount > 100;
+      const hasMissingQuery = selectedPlaces.some(place => !place.query);
+
+      function updateTask(patch) {
+        setTasks(prev => prev.map(item => item.id === task.id ? { ...item, ...patch } : item));
+      }
+
+      return (
+        <div className="stack">
+          <div className="page-head">
+            <div>
+              <h1>태스크 편집</h1>
+              <p>필수 예약 조건을 위에서 아래로 점검하고 저장 전 요약으로 실행 범위를 확인합니다.</p>
+            </div>
+            <div className="chips">
+              <span className={`status ${task.enabled ? "success" : "idle"}`}>{task.enabled ? "활성" : "비활성"}</span>
+              <button className="btn primary">저장</button>
+            </div>
+          </div>
+
+          {isOverLimit && <div className="alert warning"><b>!</b><div>실행 조합이 100개를 초과합니다. 실제 실행은 최대 100개까지만 처리됩니다.</div></div>}
+          {hasMissingQuery && <div className="alert error"><b>!</b><div>선택한 장소 중 queryString이 누락된 항목이 있습니다. 실행 전 장소 관리에서 보완하세요.</div></div>}
+
+          <details className="form-card" open>
+            <summary><span>1. 기본 정보</span><span className="status info">{task.method}</span></summary>
+            <div className="form-body">
+              <div className="grid-2">
+                <div className="field">
+                  <label>태스크 이름</label>
+                  <input className="input" value={task.name} onChange={event => updateTask({ name: event.target.value })} />
+                </div>
+                <div className="field">
+                  <label>이메일</label>
+                  <input className="input" type="email" value={task.email} onChange={event => updateTask({ email: event.target.value })} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label>예약 방식</label>
+                  <div className="segmented">
+                    <button className={task.method === "HTTP" ? "active" : ""} onClick={() => updateTask({ method: "HTTP", dryRun: "none" })}>HTTP</button>
+                    <button className={task.method === "Playwright" ? "active" : ""} onClick={() => updateTask({ method: "Playwright", dryRun: "unsupported" })}>Playwright</button>
+                  </div>
+                  <div className="muted small">{task.method === "HTTP" ? "HTTP 방식은 Dry-run 점검을 지원합니다." : "Playwright 방식은 현재 Dry-run을 지원하지 않습니다."}</div>
+                </div>
+                <div className="field">
+                  <label>활성화</label>
+                  <label className="check-row" style={{ border: "1px solid var(--border)" }}>
+                    <input type="checkbox" checked={task.enabled} onChange={event => updateTask({ enabled: event.target.checked })} />
+                    <span>전체 실행 및 스케줄 대상에 포함</span>
+                    <span className={task.enabled ? "status success" : "status idle"}>{task.enabled ? "포함" : "제외"}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details className="form-card" open>
+            <summary><span>2. 예약 조건</span><span className={isOverLimit ? "status warning" : "status success"}>조합 {combinationCount}</span></summary>
+            <div className="form-body">
+              <div className="field">
+                <label>숙박일</label>
+                <div className="chips">
+                  {task.dates.map(date => <span className="chip" key={date}>{date}<strong>×</strong></span>)}
+                  <button className="btn small">날짜 추가</button>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label>장소 선택 모드</label>
+                  <div className="segmented">
+                    <button className={task.placeMode === "selected" ? "active" : ""}>선택 장소</button>
+                    <button className={task.placeMode === "all" ? "active" : ""}>전체 장소</button>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>지역 필터</label>
+                  <select><option>전체 지역</option><option>関東</option><option>中部</option><option>近畿</option></select>
+                </div>
+              </div>
+              <div className="check-list">
+                {places.slice(0, 7).map(place => {
+                  const checked = task.places.includes(place.id);
+                  const disabledReason = place.season === "winter" && task.dates.some(date => date.includes("-06-"));
+                  return (
+                    <label className="check-row" key={place.id}>
+                      <input type="checkbox" checked={checked} readOnly />
+                      <span>{place.name}<span className="muted small"> · {place.region} · {place.season}</span></span>
+                      <span className={disabledReason ? "status warning" : place.query ? "status idle" : "status error"}>{disabledReason ? "시즌 확인" : place.query ? "정상" : "query 누락"}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </details>
+
+          <details className="form-card" open>
+            <summary><span>3. 방/인원</span><span className="status idle">동시 {task.concurrent}</span></summary>
+            <div className="form-body grid-3">
+              <div className="field"><label>방 수</label><input className="input" type="number" min="1" max="10" value={task.rooms} onChange={event => updateTask({ rooms: Number(event.target.value) })} /></div>
+              <div className="field"><label>방별 인원</label><input className="input" value={task.people.join(", ")} onChange={() => {}} /></div>
+              <div className="field"><label>동시 실행 수</label><input className="input" type="number" min="1" value={task.concurrent} onChange={event => updateTask({ concurrent: Number(event.target.value) })} /></div>
+            </div>
+          </details>
+
+          <details className="form-card" open>
+            <summary><span>4. 실행 방식</span><span className="status info">{task.startMode === "scheduled" ? "스케줄" : "수동"}</span></summary>
+            <div className="form-body">
+              <div className="grid-2">
+                <div className="field">
+                  <label>시작 모드</label>
+                  <div className="segmented">
+                    <button className={task.startMode === "manual" ? "active" : ""} onClick={() => updateTask({ startMode: "manual" })}>수동 실행</button>
+                    <button className={task.startMode === "scheduled" ? "active" : ""} onClick={() => updateTask({ startMode: "scheduled" })}>스케줄 실행</button>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>스케줄 시각</label>
+                  <input className="input mono" value={task.scheduledTime || ""} onChange={event => updateTask({ scheduledTime: event.target.value })} placeholder="2026-05-20 10:00:00" />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="field">
+                  <label>실행 모드</label>
+                  <div className="segmented">
+                    <button className={task.runMode === "once" ? "active" : ""}>1회</button>
+                    <button className={task.runMode === "repeat" ? "active" : ""}>반복</button>
+                    <button className={task.runMode === "cron" ? "active" : ""}>Cron</button>
+                  </div>
+                </div>
+                <div className="field">
+                  <label>서버 시간 참고</label>
+                  <div className="summary-box" style={{ gridTemplateColumns: "1fr" }}>
+                    <div><strong>오프셋:</strong> +124ms · <strong>RTT:</strong> 42ms</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <details className="form-card">
+            <summary><span>5. 집중 재시도</span><span className={task.burst ? "status warning" : "status idle"}>{task.burst ? "활성" : "비활성"}</span></summary>
+            <div className="form-body grid-3">
+              <div className="field"><label>최대 시도</label><input className="input" type="number" defaultValue="10" /></div>
+              <div className="field"><label>재시도 간격(ms)</label><input className="input" type="number" defaultValue="300" /></div>
+              <div className="field"><label>최대 시간(ms)</label><input className="input" type="number" defaultValue="10000" /></div>
+            </div>
+          </details>
+
+          <div className="card">
+            <div className="card-title"><h3>저장 전 요약</h3><span className={isOverLimit ? "status warning" : "status success"}>{isOverLimit ? "제한 적용" : "실행 가능"}</span></div>
+            <div className="summary-box">
+              <div><strong>예약 방식:</strong> {task.method}</div>
+              <div><strong>날짜:</strong> {task.dates.join(", ") || "미선택"}</div>
+              <div><strong>장소:</strong> {selectedPlaces.map(place => place.name).join(", ") || "미선택"}</div>
+              <div><strong>예상 조합:</strong> 날짜 {task.dates.length} × 장소 {task.places.length} = {combinationCount}개</div>
+              <div><strong>방:</strong> {task.rooms}개 / 인원 {task.people.join(", ")}명</div>
+              <div><strong>시작:</strong> {task.startMode === "scheduled" ? `${task.scheduledTime} 자동 실행` : "수동 실행"}</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function SidePanel({ task, combinationCount, running, progress, logs, logFilter, setLogFilter, logQuery, setLogQuery, onDryRun, onRun, onStop }) {
+      const endRef = useRef(null);
+      useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [logs]);
+      const dryDisabled = running || task?.method === "Playwright";
+
+      return (
+        <aside className="side-panel">
+          <div className="panel">
+            <div className="panel-title">
+              <h3>실행 제어</h3>
+              <span className={running ? "status warning" : "status idle"}>{running ? "실행 중" : "대기"}</span>
+            </div>
+            <div className="stack">
+              <div>
+                <strong>{task?.name}</strong>
+                <div className="muted small">{task?.method} · 조합 {combinationCount} · {task?.startMode === "scheduled" ? "스케줄" : "수동"}</div>
+              </div>
+              <div className="grid-2">
+                <button className="btn" disabled={dryDisabled} onClick={onDryRun}>Dry-run 점검</button>
+                {running ? <button className="btn danger" onClick={onStop}>실행 중단</button> : <button className="btn primary" onClick={onRun}>이 태스크 실행</button>}
+              </div>
+              {task?.method === "Playwright" && <div className="muted small">Playwright 방식은 현재 Dry-run을 지원하지 않습니다.</div>}
+              <div>
+                <div className="task-line"><span>진행률</span><span>{Math.round(progress)}%</span></div>
+                <div className="progress" style={{ "--value": `${progress}%` }}><div /></div>
+              </div>
+            </div>
+          </div>
+          <div className="panel">
+            <div className="panel-title"><h3>Dry-run 결과</h3><span className={task?.dryRun === "passed" ? "status success" : task?.dryRun === "failed" ? "status error" : "status idle"}>{task?.dryRun === "passed" ? "통과" : task?.dryRun === "failed" ? "실패" : "미실행"}</span></div>
+            <div className="dry-run-list">
+              <div className="dry-item"><span>필수 입력</span><strong>{task?.email ? "정상" : "누락"}</strong></div>
+              <div className="dry-item"><span>조합 수</span><strong>{combinationCount <= 100 ? "정상" : "100개 초과"}</strong></div>
+              <div className="dry-item"><span>예약 사이트</span><strong>{task?.dryRun === "passed" ? "접근 가능" : "확인 필요"}</strong></div>
+            </div>
+          </div>
+          <div className="log-wrap">
+            <div className="log-tools">
+              <select value={logFilter} onChange={event => setLogFilter(event.target.value)}>
+                <option value="all">전체 로그</option>
+                <option value="success">성공</option>
+                <option value="warning">경고</option>
+                <option value="error">오류</option>
+                <option value="info">정보</option>
+              </select>
+              <input value={logQuery} onChange={event => setLogQuery(event.target.value)} placeholder="로그 검색" />
+              <button className="btn small ghost" onClick={() => navigator.clipboard?.writeText(logs.map(log => `${log.time} ${log.level} ${log.msg}`).join("\n"))}>복사</button>
+            </div>
+            <div className="logs">
+              {logs.map((log, index) => (
+                <div className="log-line" key={`${log.time}-${index}`}>
+                  <span className="log-time">{log.time}</span>
+                  <span className={`log-level ${log.level}`}>{log.level.toUpperCase()}</span>
+                  <span>{log.msg}</span>
+                </div>
+              ))}
+              <div ref={endRef} />
+            </div>
+          </div>
+        </aside>
+      );
+    }
+
+    function HistoryView({ histories }) {
+      return (
+        <div className="stack">
+          <div className="page-head">
+            <div>
+              <h1>실행 히스토리</h1>
+              <p>실행 결과를 성공률과 조합별 상태 중심으로 확인하고 재시도 판단에 사용합니다.</p>
+            </div>
+            <button className="btn">선택 조건으로 태스크 복제</button>
+          </div>
+          <div className="card">
+            <table className="table">
+              <thead>
+                <tr><th>태스크</th><th>시작 시각</th><th>상태</th><th>성공/실패</th><th>방식</th><th>액션</th></tr>
+              </thead>
+              <tbody>
+                {histories.map(item => (
+                  <tr key={item.id}>
+                    <td><strong>{item.task}</strong><div className="muted small">소요 {item.duration}</div></td>
+                    <td className="mono">{item.start}</td>
+                    <td><span className={`status ${item.status === "success" ? "success" : item.status === "failed" ? "error" : "warning"}`}>{item.status}</span></td>
+                    <td>성공 {item.success} / 실패 {item.failed}</td>
+                    <td>{item.method}</td>
+                    <td><button className="btn small">상세 보기</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    function PlaceManager({ places, tasks }) {
+      return (
+        <div className="stack">
+          <div className="page-head">
+            <div>
+              <h1>장소 관리</h1>
+              <p>숙박 시설의 지역, 시즌, queryString 상태를 관리합니다.</p>
+            </div>
+            <button className="btn primary">장소 추가</button>
+          </div>
+          <div className="card">
+            <table className="table">
+              <thead>
+                <tr><th>ID</th><th>시설명</th><th>지역</th><th>시즌</th><th>queryString</th><th>사용 태스크</th><th>액션</th></tr>
+              </thead>
+              <tbody>
+                {places.map(place => {
+                  const used = tasks.filter(task => task.places.includes(place.id)).length;
+                  return (
+                    <tr key={place.id}>
+                      <td className="mono">{place.id}</td>
+                      <td><strong>{place.name}</strong></td>
+                      <td>{place.region}</td>
+                      <td><span className="status idle">{place.season}</span></td>
+                      <td>{place.query ? <span className="muted small">{place.query}</span> : <span className="status error">누락</span>}</td>
+                      <td>{used}개</td>
+                      <td><button className="btn small">수정</button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

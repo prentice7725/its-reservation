@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   Box,
   Typography,
   TextField,
@@ -222,6 +223,20 @@ function TaskEditor({ placesVersion = 0 }) {
     );
   });
 
+  const selectedPlaceCount = usesAllPlaces ? placeOptions.length : selectedPlaceIds.length;
+  const combinationCount = (formData?.dates?.length || 0) * selectedPlaceCount;
+  const isScheduledInPast = (() => {
+    if (formData?.startMode?.type !== 'scheduled' || !formData?.startMode?.scheduledTime) return false;
+    const scheduled = new Date(formData.startMode.scheduledTime).getTime();
+    return Number.isFinite(scheduled) && scheduled < Date.now();
+  })();
+  const missingRequired = [
+    !formData?.name && '태스크 이름',
+    !formData?.email && '이메일',
+    (formData?.dates || []).length === 0 && '예약 날짜',
+    !usesAllPlaces && selectedPlaceIds.length === 0 && '장소',
+  ].filter(Boolean);
+
   const getSelectedPlaceLabel = (placeId) => {
     const option = rawPlaceOptions.find((opt) => opt.id === placeId);
     if (!option) return placeId;
@@ -318,6 +333,52 @@ function TaskEditor({ placesVersion = 0 }) {
       <Typography variant="h6" sx={{ mb: 2 }}>
         태스크 편집
       </Typography>
+
+      <Stack spacing={1.5} sx={{ mb: 2 }}>
+        {missingRequired.length > 0 && (
+          <Alert severity="warning">
+            필수 입력이 필요합니다: {missingRequired.join(', ')}
+          </Alert>
+        )}
+        {isScheduledInPast && (
+          <Alert severity="error">
+            현재보다 과거 시각은 스케줄로 등록할 수 없습니다.
+          </Alert>
+        )}
+        {combinationCount > 100 && (
+          <Alert severity="warning">
+            실행 조합이 100개를 초과합니다. 실제 실행은 최대 100개까지만 처리됩니다.
+          </Alert>
+        )}
+        <Paper variant="outlined" sx={{ p: 1.5, bgcolor: '#fbfcfe' }}>
+          <Grid container spacing={1.5}>
+            <Grid item xs={6} md={2.4}>
+              <Typography variant="caption" color="text.secondary">예약 방식</Typography>
+              <Typography variant="body2" fontWeight={800}>{formData?.method || 'http'}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2.4}>
+              <Typography variant="caption" color="text.secondary">날짜</Typography>
+              <Typography variant="body2" fontWeight={800}>{formData?.dates?.length || 0}개</Typography>
+            </Grid>
+            <Grid item xs={6} md={2.4}>
+              <Typography variant="caption" color="text.secondary">장소</Typography>
+              <Typography variant="body2" fontWeight={800}>{usesAllPlaces ? `전체 ${selectedPlaceCount}` : `선택 ${selectedPlaceCount}`}</Typography>
+            </Grid>
+            <Grid item xs={6} md={2.4}>
+              <Typography variant="caption" color="text.secondary">예상 조합</Typography>
+              <Typography variant="body2" fontWeight={800} color={combinationCount > 100 ? 'warning.main' : 'text.primary'}>
+                {combinationCount}개
+              </Typography>
+            </Grid>
+            <Grid item xs={6} md={2.4}>
+              <Typography variant="caption" color="text.secondary">실행</Typography>
+              <Typography variant="body2" fontWeight={800}>
+                {formData?.startMode?.type === 'scheduled' ? '스케줄' : '수동'}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Stack>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Grid container spacing={2}>
