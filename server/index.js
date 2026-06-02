@@ -4,6 +4,7 @@ import { WebSocketServer } from 'ws';
 import http from 'http';
 import { loadTasks, saveTasks, deleteTask, loadHistory, saveHistory, loadPlaces, savePlaces } from './storage.js';
 import { ReservationExecutor } from './reservation-executor.js';
+import { shouldRegisterSchedule } from './task-schedule-policy.js';
 
 const app = express();
 const PORT = 3001;
@@ -110,12 +111,7 @@ app.post('/api/tasks', async (req, res) => {
     await saveTasks(tasks);
 
     // 스케줄 재등록
-    const shouldSchedule = savedTask.enabled && savedTask.startMode && savedTask.runMode && (
-      savedTask.startMode.type === 'scheduled' ||
-      (savedTask.startMode.type === 'manual' && (savedTask.runMode.type === 'repeat' || savedTask.runMode.type === 'cron'))
-    );
-
-    if (shouldSchedule) {
+    if (shouldRegisterSchedule(savedTask)) {
       executor.startSchedule(savedTask);
     } else {
       executor.stopSchedule(savedTask.id);

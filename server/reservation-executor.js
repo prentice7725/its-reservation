@@ -8,6 +8,7 @@ import {
 import { runPlaywrightReservation } from '../src/reservation/playwright-reservation.js';
 import { v4 as uuidv4 } from 'uuid';
 import schedule from 'node-schedule';
+import { shouldRegisterSchedule } from './task-schedule-policy.js';
 
 export class ReservationExecutor {
   constructor(mainWindow) {
@@ -460,14 +461,7 @@ export class ReservationExecutor {
   // 모든 활성화된 태스크의 스케줄 초기화
   async initializeSchedules() {
     const tasks = await loadTasks();
-    const schedulableTasks = tasks.filter(t => {
-      if (!t.enabled || !t.startMode || !t.runMode) {
-        return false;
-      }
-      // scheduled 시작 모드이거나, manual이지만 runMode가 repeat/cron인 경우
-      return t.startMode.type === 'scheduled' ||
-             (t.startMode.type === 'manual' && (t.runMode.type === 'repeat' || t.runMode.type === 'cron'));
-    });
+    const schedulableTasks = tasks.filter(shouldRegisterSchedule);
 
     this.sendLog('info', `스케줄 초기화: ${schedulableTasks.length}개 태스크`);
 

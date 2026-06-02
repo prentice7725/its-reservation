@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { randomUUID } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +26,17 @@ async function ensureDataDirectory() {
   }
 }
 
+export async function atomicWriteJson(filePath, value) {
+  const tempPath = `${filePath}.${randomUUID()}.tmp`;
+
+  try {
+    await fs.writeFile(tempPath, JSON.stringify(value, null, 2), 'utf-8');
+    await fs.rename(tempPath, filePath);
+  } finally {
+    await fs.rm(tempPath, { force: true });
+  }
+}
+
 // 태스크 로드
 export async function loadTasks() {
   await ensureDataDirectory();
@@ -44,23 +56,17 @@ export async function saveTasks(tasks) {
   await ensureDataDirectory();
   const filePath = path.join(getDataPath(), TASKS_FILE);
 
-  // 원자적 쓰기 (임시 파일 + rename)
-  const tempPath = `${filePath}.tmp`;
-  await fs.writeFile(tempPath, JSON.stringify(tasks, null, 2), 'utf-8');
-  await fs.rename(tempPath, filePath);
+  await atomicWriteJson(filePath, tasks);
 
   return tasks;
 }
 
 // 태스크 삭제
 export async function deleteTask(id) {
-  await ensureDataDirectory();
-  const filePath = path.join(getDataPath(), TASKS_FILE);
-
   const tasks = await loadTasks();
   const filtered = tasks.filter(t => t.id !== id);
 
-  await fs.writeFile(filePath, JSON.stringify(filtered, null, 2), 'utf-8');
+  await saveTasks(filtered);
   return true;
 }
 
@@ -88,7 +94,7 @@ export async function saveHistory(entry) {
   // 최근 100개만 유지
   const trimmed = history.slice(-100);
 
-  await fs.writeFile(filePath, JSON.stringify(trimmed, null, 2), 'utf-8');
+  await atomicWriteJson(filePath, trimmed);
   return entry;
 }
 
@@ -111,6 +117,6 @@ export async function savePlaces(places) {
   await ensureDataDirectory();
   const filePath = path.join(getDataPath(), PLACES_FILE);
 
-  await fs.writeFile(filePath, JSON.stringify(places, null, 2), 'utf-8');
+  await atomicWriteJson(filePath, places);
   return places;
 }
