@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Box,
   Button,
@@ -13,6 +13,8 @@ import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SearchIcon from '@mui/icons-material/Search';
 import { apiClient } from '../api/client';
+
+const MAX_VISIBLE_LOGS = 1000;
 
 function formatLogTime(value) {
   const date = new Date(value);
@@ -53,7 +55,10 @@ function LogViewer() {
 
   useEffect(() => {
     const unsubscribe = apiClient.onLog((log) => {
-      setLogs((prevLogs) => [...prevLogs, log]);
+      setLogs((prevLogs) => {
+        const nextLogs = [...prevLogs, log];
+        return nextLogs.length > MAX_VISIBLE_LOGS ? nextLogs.slice(-MAX_VISIBLE_LOGS) : nextLogs;
+      });
     });
 
     return () => {
@@ -63,17 +68,25 @@ function LogViewer() {
 
   useEffect(() => {
     if (autoScroll) {
-      logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      const frameId = requestAnimationFrame(() => {
+        logEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      });
+
+      return () => cancelAnimationFrame(frameId);
     }
   }, [logs, autoScroll]);
 
-  const filteredLogs = logs.filter((log) => {
-    const level = normalizeLevel(log.level);
-    const matchesLevel = levelFilter === 'all' || level === levelFilter;
-    const matchesKeyword = !keyword.trim()
-      || (log.message || '').toLowerCase().includes(keyword.trim().toLowerCase());
-    return matchesLevel && matchesKeyword;
-  });
+  const filteredLogs = useMemo(() => {
+    const normalizedKeyword = keyword.trim().toLowerCase();
+
+    return logs.filter((log) => {
+      const level = normalizeLevel(log.level);
+      const matchesLevel = levelFilter === 'all' || level === levelFilter;
+      const matchesKeyword = !normalizedKeyword
+        || (log.message || '').toLowerCase().includes(normalizedKeyword);
+      return matchesLevel && matchesKeyword;
+    });
+  }, [keyword, levelFilter, logs]);
 
   const handleCopy = async () => {
     const text = filteredLogs

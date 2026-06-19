@@ -23,11 +23,12 @@ import FactCheckIcon from '@mui/icons-material/FactCheck';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { TaskProvider, useTasks } from './contexts/TaskContext';
 import TaskList from './components/TaskList';
-import TaskEditor from './components/TaskEditor';
-import ExecutionPanel from './components/ExecutionPanel';
-import LogViewer from './components/LogViewer';
-import HistoryViewer from './components/HistoryViewer';
-import PlaceManager from './components/PlaceManager';
+
+const TaskEditor = React.lazy(() => import('./components/TaskEditor'));
+const ExecutionPanel = React.lazy(() => import('./components/ExecutionPanel'));
+const LogViewer = React.lazy(() => import('./components/LogViewer'));
+const HistoryViewer = React.lazy(() => import('./components/HistoryViewer'));
+const PlaceManager = React.lazy(() => import('./components/PlaceManager'));
 
 const theme = createTheme({
   palette: {
@@ -133,7 +134,7 @@ function AppShell() {
   const [serverTime, setServerTime] = React.useState(new Date());
 
   React.useEffect(() => {
-    const timer = setInterval(() => setServerTime(new Date()), 100);
+    const timer = setInterval(() => setServerTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -176,7 +177,7 @@ function AppShell() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'primary.main' }}>
               <AccessTimeIcon fontSize="small" />
               <Typography variant="body2" fontWeight={800}>
-                서버 {formatClock(serverTime)}.{String(serverTime.getMilliseconds()).padStart(3, '0')}
+                서버 {formatClock(serverTime)}
               </Typography>
             </Box>
             <Typography variant="body2" color="text.secondary">오프셋 +124ms</Typography>
@@ -246,17 +247,23 @@ function AppShell() {
           {view === 'dashboard' && <Dashboard tasks={tasks} setView={handleViewChange} />}
           {(view === 'tasks' || view === 'editor') && (
             <WorkspacePaper>
-              <TaskEditor placesVersion={placesVersion} />
+              <React.Suspense fallback={<LoadingBlock label="태스크 편집기를 불러오는 중" />}>
+                <TaskEditor placesVersion={placesVersion} />
+              </React.Suspense>
             </WorkspacePaper>
           )}
           {view === 'history' && (
             <WorkspacePaper>
-              <HistoryViewer />
+              <React.Suspense fallback={<LoadingBlock label="히스토리를 불러오는 중" />}>
+                <HistoryViewer />
+              </React.Suspense>
             </WorkspacePaper>
           )}
           {view === 'places' && (
             <WorkspacePaper>
-              <PlaceManager onPlacesChanged={handlePlacesChanged} />
+              <React.Suspense fallback={<LoadingBlock label="장소 관리 화면을 불러오는 중" />}>
+                <PlaceManager onPlacesChanged={handlePlacesChanged} />
+              </React.Suspense>
             </WorkspacePaper>
           )}
         </Box>
@@ -276,10 +283,14 @@ function AppShell() {
             }}
           >
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-              <ExecutionPanel />
+              <React.Suspense fallback={<LoadingBlock label="실행 패널을 불러오는 중" compact />}>
+                <ExecutionPanel />
+              </React.Suspense>
             </Box>
             <Box sx={{ minHeight: 0, overflow: 'hidden' }}>
-              <LogViewer />
+              <React.Suspense fallback={<LoadingBlock label="로그 뷰어를 불러오는 중" compact />}>
+                <LogViewer />
+              </React.Suspense>
             </Box>
           </Paper>
         )}
@@ -309,6 +320,16 @@ function WorkspacePaper({ children }) {
     <Paper variant="outlined" sx={{ p: { xs: 2, md: 2.5 }, borderRadius: 2 }}>
       {children}
     </Paper>
+  );
+}
+
+function LoadingBlock({ label, compact = false }) {
+  return (
+    <Box sx={{ py: compact ? 1 : 4, textAlign: 'center' }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+    </Box>
   );
 }
 

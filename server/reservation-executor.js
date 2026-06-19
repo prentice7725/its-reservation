@@ -10,21 +10,27 @@ import { v4 as uuidv4 } from 'uuid';
 import schedule from 'node-schedule';
 import { shouldRegisterSchedule } from './task-schedule-policy.js';
 
+const GLOBAL_HTTP_CONCURRENCY = 100;
+const GLOBAL_PLAYWRIGHT_CONCURRENCY = 5;
+const MAX_HISTORY_LOGS_PER_RUN = 500;
+
 export class ReservationExecutor {
   constructor(mainWindow) {
     this.mainWindow = mainWindow;
     this.runningTasks = new Map();
     this.scheduledJobs = new Map(); // 스케줄된 작업들
     this.repeatIntervals = new Map(); // 반복 실행 인터벌들
+    this.globalHttpSemaphore = new Semaphore(GLOBAL_HTTP_CONCURRENCY);
+    this.globalPlaywrightSemaphore = new Semaphore(GLOBAL_PLAYWRIGHT_CONCURRENCY);
   }
 
   // 조합 생성 (places × dates)
-  async generateCombinations(task) {
+  async generateCombinations(task, allPlaces = null) {
     const combinations = [];
-    const allPlaces = await loadPlaces();
+    const placesById = allPlaces || await loadPlaces();
     const legacyUsesAllPlaces = !task.placeMode && (!task.places || task.places.length === 0);
     const usesAllPlaces = task.placeMode === 'all' || legacyUsesAllPlaces;
-    const places = usesAllPlaces ? Object.keys(allPlaces) : (task.places || []);
+    const places = usesAllPlaces ? Object.keys(placesById) : (task.places || []);
 
     for (const place of places) {
       for (const date of task.dates) {
@@ -52,6 +58,10 @@ export class ReservationExecutor {
     };
   }
 
+  getMethodSemaphore(method) {
+    return method === 'http' ? this.globalHttpSemaphore : this.globalPlaywrightSemaphore;
+  }
+
   // 단일 태스크 실행
   async executeTask(taskId) {
     if (this.runningTasks.has(taskId)) {
@@ -76,7 +86,8 @@ export class ReservationExecutor {
       startedAt: new Date().toISOString()
     });
 
-    const combinations = await this.generateCombinations(task);
+    const allPlaces = await loadPlaces();
+    const combinations = await this.generateCombinations(task, allPlaces);
     const maxConcurrency = this.getTaskConcurrency(combinations.length);
     const semaphore = new Semaphore(maxConcurrency);
     const startTime = Date.now();
@@ -94,9 +105,6 @@ export class ReservationExecutor {
 
     this.sendLog('info', `${combinations.length}개 조합 실행 (동시 실행 ${maxConcurrency})`);
 
-    // places 정보 가져오기 (queryString 필요)
-    const allPlaces = await loadPlaces();
-
     // 실행 함수
     const executeReservation = async ({ place, date }) => {
       const acquired = await semaphore.acquire(controller.signal);
@@ -104,7 +112,15 @@ export class ReservationExecutor {
         return { place, date, result: 'cancelled' };
       }
 
+      const methodSemaphore = this.getMethodSemaphore(task.method);
+      let methodAcquired = false;
+
       try {
+        methodAcquired = await methodSemaphore.acquire(controller.signal);
+        if (!methodAcquired) {
+          return { place, date, result: 'cancelled' };
+        }
+
         if (controller.signal.aborted) {
           return { place, date, result: 'cancelled' };
         }
@@ -118,6 +134,9 @@ export class ReservationExecutor {
             level,
             message
           });
+          if (historyEntry.logs.length > MAX_HISTORY_LOGS_PER_RUN) {
+            historyEntry.logs.splice(0, historyEntry.logs.length - MAX_HISTORY_LOGS_PER_RUN);
+          }
         };
 
         let result;
@@ -137,6 +156,9 @@ export class ReservationExecutor {
 
         return { place, date, result };
       } finally {
+        if (methodAcquired) {
+          methodSemaphore.release();
+        }
         semaphore.release();
       }
     };
@@ -234,7 +256,7 @@ export class ReservationExecutor {
     }
 
     const allPlaces = await loadPlaces();
-    const combinations = await this.generateCombinations(task);
+    const combinations = await this.generateCombinations(task, allPlaces);
     const limitedCombinations = combinations.slice(0, 10);
     const results = [];
 

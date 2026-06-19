@@ -1,9 +1,13 @@
 const API_BASE = 'http://localhost:3001/api';
 const WS_URL = 'ws://localhost:3001';
+const INITIAL_RECONNECT_DELAY_MS = 1000;
+const MAX_RECONNECT_DELAY_MS = 30000;
 
 class APIClient {
   constructor() {
     this.ws = null;
+    this.reconnectTimer = null;
+    this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
     this.listeners = {
       log: [],
       status: []
@@ -12,14 +16,20 @@ class APIClient {
 
   // WebSocket 연결
   connectWebSocket() {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws && [WebSocket.CONNECTING, WebSocket.OPEN].includes(this.ws.readyState)) {
       return;
+    }
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
 
     this.ws = new WebSocket(WS_URL);
 
     this.ws.onopen = () => {
       console.log('WebSocket connected');
+      this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
     };
 
     this.ws.onmessage = (event) => {
@@ -41,9 +51,21 @@ class APIClient {
     };
 
     this.ws.onclose = () => {
-      console.log('WebSocket closed, reconnecting...');
-      setTimeout(() => this.connectWebSocket(), 3000);
+      this.ws = null;
+
+      if (!this.hasWebSocketListeners()) {
+        return;
+      }
+
+      const delayMs = this.reconnectDelayMs;
+      console.log(`WebSocket closed, reconnecting in ${delayMs}ms...`);
+      this.reconnectTimer = setTimeout(() => this.connectWebSocket(), delayMs);
+      this.reconnectDelayMs = Math.min(this.reconnectDelayMs * 2, MAX_RECONNECT_DELAY_MS);
     };
+  }
+
+  hasWebSocketListeners() {
+    return this.listeners.log.length > 0 || this.listeners.status.length > 0;
   }
 
   // 이벤트 리스너 등록
@@ -53,6 +75,7 @@ class APIClient {
 
     return () => {
       this.listeners.log = this.listeners.log.filter(cb => cb !== callback);
+      this.closeWebSocketIfIdle();
     };
   }
 
@@ -62,7 +85,23 @@ class APIClient {
 
     return () => {
       this.listeners.status = this.listeners.status.filter(cb => cb !== callback);
+      this.closeWebSocketIfIdle();
     };
+  }
+
+  closeWebSocketIfIdle() {
+    if (this.hasWebSocketListeners()) {
+      return;
+    }
+
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.ws && [WebSocket.CONNECTING, WebSocket.OPEN].includes(this.ws.readyState)) {
+      this.ws.close();
+    }
   }
 
   // 태스크 API
